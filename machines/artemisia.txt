@@ -1,0 +1,99 @@
+== date
+2026-10-26T12:49:52-04:00
+== uname
+Linux artemisia.ece.ncsu.edu 6.17.8-1.el9.elrepo.x86_64 #1 SMP PREEMPT_DYNAMIC Thu Nov 13 18:02:25 EST 2025 x86_64 x86_64 x86_64 GNU/Linux
+== lscpu
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           52 bits physical, 57 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  112
+On-line CPU(s) list:                     0-111
+Vendor ID:                               GenuineIntel
+Model name:                              Intel(R) Xeon(R) Gold 5420+
+CPU family:                              6
+Model:                                   143
+Thread(s) per core:                      2
+Core(s) per socket:                      28
+Socket(s):                               2
+Stepping:                                8
+CPU(s) scaling MHz:                      93%
+CPU max MHz:                             4100.0000
+CPU min MHz:                             800.0000
+BogoMIPS:                                4000.00
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 intel_ppin cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd sgx_lc fsrm md_clear serialize tsxldtrk pconfig arch_lbr ibt amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities
+Virtualization:                          VT-x
+L1d cache:                               2.6 MiB (56 instances)
+L1i cache:                               1.8 MiB (56 instances)
+L2 cache:                                112 MiB (56 instances)
+L3 cache:                                105 MiB (2 instances)
+NUMA node(s):                            2
+NUMA node0 CPU(s):                       0-27,56-83
+NUMA node1 CPU(s):                       28-55,84-111
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Vulnerable
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace
+== cpuinfo (cpu 0)
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 143
+model name	: Intel(R) Xeon(R) Gold 5420+
+stepping	: 8
+microcode	: 0x2b000685
+cpu MHz		: 2709.342
+cache size	: 53760 KB
+physical id	: 0
+siblings	: 56
+core id		: 0
+cpu cores	: 28
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 32
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 intel_ppin cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd sgx_lc fsrm md_clear serialize tsxldtrk pconfig arch_lbr ibt amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities
+vmx flags	: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb ept_5level flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid ple shadow_vmcs pml ept_violation_ve ept_mode_based_exec tsc_scaling usr_wait_pause notify_vm_exiting ipi_virt
+bugs		: spectre_v1 spectre_v2 spec_store_bypass swapgs eibrs_pbrsb bhi spectre_v2_user old_microcode vmscape
+bogomips	: 4000.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 52 bits physical, 57 bits virtual
+power management:
+== sgx devices
+crw-rw----. 1 root sgx     10, 258 Oct 26 12:35 /dev/sgx_enclave
+crw-rw----. 1 root sgx_prv 10, 257 Oct 26 12:35 /dev/sgx_provision
+crw-rw----. 1 root sgx     10, 259 Oct 26 12:35 /dev/sgx_vepc
+
+/dev/sgx:
+total 0
+lrwxrwxrwx. 1 root root 14 Oct 26 12:35 enclave -> ../sgx_enclave
+lrwxrwxrwx. 1 root root 16 Oct 26 12:35 provision -> ../sgx_provision
+== sgx dmesg
+[    1.195167] sgx: EPC section 0x4040600000-0x407f3fefff
+[    1.196559] sgx: EPC section 0x8040600000-0x807fffffff
+== perf_event_paranoid
+2
+== gramine
+Gramine 1.6.2post~UNRELEASED (0ee48eebb24c38bdad193fa9945a3b26d4a89dc6)
+== gcc
+gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-14)
+== groups
+NCSU ECE-Users ECE-EBII 1008.Users ECE-EBII 2116.Users ECE-Teaching Labs Users ECE-Research Users COE-Users NCSU-Unity Users COEDEAN-Users NCSU-M-Unity Users COEDEAN-Public Labs.Users WT-COEDEAN-All COE users MSE-Users MSE-Research Labs.Users OIT-Users WT-CSC-ALL CSC COURSES TEX-Conference Rooms.Users OIT-Apps-RO COEDEAN-Private Labs.Users COEDEAN-Private Labs-Academic Affairs.Users OIT-TrainingLabs-RO courses-csc-453-readonly OIT-Printer-hlb-317-color1 WT-CSC-Electrical and Computer Engineering - Students COEDEAN-Presentation Rooms.Users CSC-Mediasite-Students MSE-Add User to Remote Desktop Users Group TEX-Teaching Labs-Tutoring Center.Users TEX-Student Labs-Student Lounge.Users TEX-Lecterns.Users TEX-Student Labs.Users TEX-Loaners.Users COEDEAN-Conference Rooms.Users IES-Conference Rooms.Users CSC-Mediasite-ALL WT-CSC-All OITMD-GRDSCH-Share-Public-Presentation Share-RW MSE-JLJServer.User OITLAB-Unity Labs.Users OITCT-Conference.Users OITLAB-Users OITLAB-Teaching Labs.Users OITCT-Users OITLAB-Test.Users OITLAB-Unity Labs.HLB 106.Users OITLAB-Teaching Labs.AFTC 110.Users OITLAB-Test.Print Test.Users OITLAB-Dept Labs.Users OITLAB-Dept Labs.PARKSCH PH 211.Users WT-NCSU-Students-Graduate NCSU-PSO-Unity Accounts OIT-VPN-Students MSE-Classroom.Users TEX-Teaching Labs-Scale Up.Users ECE-AppLocker Deny-Users OIT-VPN-Students-Graduate OIT-M365-Students-Graduate ECE-acl-dk_spec_2006_2017-rd ECE-PC-hunter.Admins ECE-PC-hunter.Users CH-Empower.Users COEDEAN-WVD.Users MSE-Labs-EB1-B14.Users CCEE-Research Labs.FWH 1115.Users ECE-acl-course_ece720_common-rd ECE-acl-course_ece546_common-rd PY-Elting Lab.Users PERSONA-ECE.ece-students OIT-RS-Researcher-smirbag PERSONA-TEXTILES.all-users WT-COS-All People ECE-acl-dk_cadence-rd ECE-acl-dk_riscv_toolchains-rd ECE-acl-dk_ncsu-rd ECE-acl-course_ece310_common-rd PERSONA-ITECS-EOL-CLASSES.eol-006171-student PERSONA-ITECS-EOL-CLASSES.eol-004665-student PERSONA-ITECS-EOL-CLASSES.eol-031731-student ECE-smirbag.Administrators ECE-smirbag.Users PERSONA-ECE-IT.eddie-app PERSONA-COE-APPSTREAM-ACCESS.coe-course-students PERSONA-COE-APPSTREAM-ACCESS.all-appstream COEDEAN-Presentation Rooms-CCC.Users OIT-HPC-Cluster-Users PERSONA-NCSU.all-people-export ECE-PC-artemisia.Admins ECE-PC-artemisia.Users ECE-PC-greenforest.Admins ECE-PC-seasidehill.Admins ECE-PC-greenforest.Users ECE-PC-seasidehill.Users WT-ISE-ALL-COE PERSONA-SSOT.ot-students PERSONA-GITHUB-CLOUD.eligible-users ECE-PC-charnwood.Admins ECE-PC-charnwood.Users ECE-acl-dk_sky130-rd ECE-acl-dk_cbp2025-rd PERSONA-GOOGLE.google-licensing-combined-stu PERSONA-BROADCASTER.students PERSONA-ITECS-EOL-CLASSES.eol-006171-118-student ECE-acl-dk_gf180MCU-rd ECE-PC-ookay.Admins ECE-PC-ookay.Users ECE-PC-upgrade.Admins ECE-PC-upgrade.Users ECE-PC-crux.Admins ECE-PC-crux.Users PERSONA-ECE.ece592-118 ECE-PC-sunbird.Admins ECE-PC-sunbird.Users ECE-PC-thunderbird.Admins ECE-PC-thunderbird.Users ECE-PC-skylark.Admins ECE-PC-skylark.Users ECE-PC-sunbird.Basic OIT-Licensure-A3-Student-l-r PERSONA-ITECS-EOL-CLASSES.eol-004665-001-student PERSONA-ITECS-EOL-CLASSES.eol-031731-001-student PERSONA-ECE-MAKERSPACE.safety OIT-All Unity Accounts ECE-PC-gravedigger.Admins ECE-PC-gravedigger.Users ECE-acl-dk_ihpopen-rd ECE-PC-sorrow.Admins ECE-PC-sorrow.Users ECE-PC-ece-dev-001.Admins ECE-PC-descent.Admins ECE-PC-descent.Users ECE-PC-elevation.Admins ECE-PC-incursion.Admins ECE-PC-slumberjack.Admins ECE-PC-littleriver.Admins ECE-PC-smithriver.Admins ECE-PC-trentriver.Admins ECE-PC-wildcat.Admins ECE-PC-charlotte.Admins ECE-PC-monkey.Admins

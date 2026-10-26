@@ -1,0 +1,16 @@
+/* ECALL interface shared by every experiment's enclave.
+ * Each call forwards to the experiment's kt_* functions (common/kt.h). */
+enclave {
+    trusted {
+        public uint64_t ecall_count(void);
+        public void ecall_entry(uint64_t i, [out, size=cap] char *name, size_t cap,
+                                [out] uint64_t *a, [out] uint64_t *b);
+        /* `data` is copied into enclave memory by the generated bridge. */
+        public int ecall_setup([in, size=len] const uint8_t *data, size_t len,
+                               uint64_t p0, uint64_t p1, uint64_t p2);
+        /* Runs entry i and returns TSC ticks measured inside the enclave. */
+        public uint64_t ecall_run(uint64_t i, uint64_t iters);
+        /* Calibration chain timed inside the enclave (kind: 0 add, 1 imul). */
+        public uint64_t ecall_calib(int kind, uint64_t iters);
+    };
+};

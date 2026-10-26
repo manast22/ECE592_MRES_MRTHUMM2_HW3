@@ -1,0 +1,20 @@
+# native build outputs
+*/bench/q*_bench
+# generated kernels (q01_pipelined/bench/kernels.S is hand-written and tracked)
+q02_ooo/bench/kernels.S
+q04_rob/bench/kernels.S
+q05_prf/bench/kernels.S
+q14_fetch_width/bench/kernels.S
+# SGX build outputs
+*_sgx
+*_sgx.unsigned.so
+*_sgx.enclave.so
+*_sgx.enclave.so.log
+*_sgx.config.xml
+kb_t.[ch]
+kb_u.[ch]
+common/sgx/timer_probe/probe_app
+common/sgx/timer_probe/enclave.so
+common/sgx/timer_probe/enclave.signed.so
+common/sgx/timer_probe/probe_[tu].[ch]
+__pycache__/

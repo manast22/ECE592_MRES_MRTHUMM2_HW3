@@ -1,0 +1,14 @@
+enclave {
+    trusted {
+        /* One rdtsc inside the enclave (faults on CPUs that forbid it). */
+        public void ecall_rdtsc([out] uint64_t *tsc);
+        /* n back-to-back rdtsc reads: shows resolution / emulation. */
+        public void ecall_rdtsc_deltas([out, count=n] uint64_t *deltas, size_t n);
+        /* Time the calibration add chain with rdtsc inside the enclave. */
+        public void ecall_timed_add_chain(uint64_t iters, [out] uint64_t *ticks);
+        /* Same work, untimed: the host times the whole ECALL from outside. */
+        public void ecall_add_chain(uint64_t iters);
+        /* Empty call: ECALL round-trip overhead. */
+        public void ecall_nop(void);
+    };
+};
