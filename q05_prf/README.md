@@ -43,7 +43,7 @@ Code snippet (`int` filler, N = 3):
 cd q05_prf/bench
 ./run.sh native 2           # ~15 s
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py    # -> plots/q5_prf.png + knees on stdout
+python3 ../plots/plot.py    # -> plots/compare/q5_prf.png (or `plot.py <machine>` -> plots/<machine>/) + knees on stdout
 ```
 Run Q4 first if you want the NOP reference line on the plot.
 

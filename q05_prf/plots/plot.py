@@ -10,9 +10,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from knee import knee, sweep
-from plotlib import COLORS, load_results, style
+from plotlib import COLORS, load_results, style, plot_dir
 
-KINDS = {"int": "integer (add r,r)", "ymm": "vector (vpaddd ymm)", "mix": "alternating int / ymm"}
+KINDS = {"int": "integer (add r,r)", "ymm": "vector (vpaddd ymm)", "mix": "alternating int / ymm",
+         "int_lea": "integer, flags-free (lea)", "int_ind": "integer, independent (lea)",
+         "int_andn": "integer, independent, writes flags (andn)", "zmm": "vector (vpaddd zmm)"}
 
 data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
@@ -25,7 +27,8 @@ for ax, (label, d) in zip(axes[:, 0], data.items()):
     if label in rob:
         ns, med, _, _ = sweep(rob[label]["rows"], "nop")
         ax.plot(ns, med, color="#8a8984", linewidth=1.2, linestyle="--", label="nop (Q4, ROB)")
-    for i, (kind, desc) in enumerate(KINDS.items()):
+    present = {r["kind"] for r in d["rows"]}
+    for i, (kind, desc) in enumerate((k, v) for k, v in KINDS.items() if k in present):
         ns, med, lo, hi = sweep(d["rows"], kind)
         a, b, rise = knee(ns, med)
         ax.fill_between(ns, lo, hi, color=COLORS[i], alpha=0.15, linewidth=0)
@@ -35,6 +38,6 @@ for ax, (label, d) in zip(axes[:, 0], data.items()):
           "cycles per iteration")
     ax.legend(frameon=False, fontsize=8)
 fig.tight_layout()
-out = os.path.join(HERE, "q5_prf.png")
+out = os.path.join(plot_dir(HERE), "q5_prf.png")
 fig.savefig(out, dpi=150)
 print("wrote", out)

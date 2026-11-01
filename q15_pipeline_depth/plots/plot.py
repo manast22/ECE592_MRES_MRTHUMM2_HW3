@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "common"))
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from plotlib import COLORS, MARKERS, aggregate, load_results, style
+from plotlib import COLORS, MARKERS, aggregate, load_results, style, plot_dir
 
 data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
@@ -52,6 +52,6 @@ style(ax1, "Q15 — cost vs. taken probability", "taken probability F", "cycles 
 style(ax2, "Implied cycles lost per mispredict", "taken probability F", "cycles per mispredict")
 ax1.legend(frameon=False)
 fig.tight_layout()
-out = os.path.join(HERE, "q15_penalty.png")
+out = os.path.join(plot_dir(HERE), "q15_penalty.png")
 fig.savefig(out, dpi=150)
 print("wrote", out)

@@ -15,4 +15,4 @@ for f in 0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50; do
     PATTERNS+=",bias:$f"
 done
 
-run_bench "$MODE" "$CPU" "../results/$(hostname -s)_${MODE}.csv" q15_bench -t 11 -p "$PATTERNS" "$@"
+run_bench "$MODE" "$CPU" "../results/$(machine_name)/${MODE}.csv" q15_bench -t 11 -p "$PATTERNS" "$@"

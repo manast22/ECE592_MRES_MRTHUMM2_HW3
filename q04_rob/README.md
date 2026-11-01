@@ -40,10 +40,12 @@ Code snippet (N = 2 shown):
 cd q04_rob/bench
 ./run.sh native 2           # ~10 s
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py    # -> plots/q4_rob.png + knee on stdout
+python3 ../plots/plot.py    # -> plots/compare/q4_rob.png (or `plot.py <machine>` -> plots/<machine>/) + knee on stdout
 ```
-For a finer sweep near the knee, edit `GEN_ARGS` in `bench/Makefile` (e.g. `--n 480:528:1`)
-and rerun `make`.
+`run.sh` runs the coarse grid (`-n 0:800:8`). For the step-1 sweep around the knee (N = 470..530,
+21 trials) run `./zoom.sh native 2` / `./zoom.sh sgx 2` (writes `results/<machine>/zoom/<mode>.csv`)
+and `python3 ../plots/plot_zoom.py`. Both grids are built into the same binary (`GEN_ARGS`);
+the driver option `-n lo:hi:step` picks which kernels run.
 
 ## Interpreting results
 - Flat region at ~1 miss/iteration, then a step to ~2 misses/iteration.

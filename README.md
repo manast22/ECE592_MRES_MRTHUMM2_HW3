@@ -98,10 +98,11 @@ common/                  shared harness
   kbackend.h, kb_native.c  host-side backend for native runs
   sgx/                   SGX backend: kb.edl, enclave_main.c, kb_sgx.c, sgx.mk, timer_probe/
   run_lib.sh             run_bench: taskset pinning, SMT-sibling check, output capture
-  sysinfo.sh             records machines/<host>.txt
+  sysinfo.sh             records machines/<machine>.txt
   chase/                 pointer-chase generator + driver shared by Q2/Q4/Q5
   plotlib.py, knee.py    plot helpers
-q01_pipelined/           Q1   (each experiment: README.md, bench/, results/, plots/)
+  pmu_verify.sh          perf-counter cross-check of the timing results (native only)
+q01_pipelined/           Q1   (each experiment: README.md, bench/, results/<machine>/, plots/)
 q02_ooo/                 Q2
 q03_branch/              Q3
 q04_rob/                 Q4
@@ -109,8 +110,8 @@ q05_prf/                 Q5
 q14_fetch_width/         Q14
 q15_pipeline_depth/      Q15  (builds from q03 sources)
 machines/                per-host lscpu / cpuinfo / SGX snapshot
-report/                  PDF report (later)
-AI_LOG.md                AI-use disclosure log (later)
+report/                  report outline (PDF report to come)
+AI_LOG.md                AI-use disclosure log (keep updated)
 ```
 
 Each experiment folder has its own README with implementation details, commands, run
@@ -128,8 +129,12 @@ python3 ../plots/plot.py
 
 - `run.sh` builds the benchmark, pins it with `taskset`, reports how busy the SMT
   sibling is (on artemisia the siblings are n / n+56, so CPU 2 pairs with 58), and writes
-  `results/<host>_<mode>.csv`. Plot scripts plot every CSV in `results/` side by side,
-  so runs from both machines, and native vs. SGX, overlay automatically.
+  `results/<machine>/<mode>.csv`, where `<machine>` is the short hostname (override with
+  `MACHINE=name ./run.sh ...`). So running on artemisia fills `results/artemisia/`, and on
+  the second machine its own folder is created automatically. Plot scripts plot every CSV
+  under `results/*/` side by side, so both machines, and native vs. SGX, overlay automatically.
+  Figures go to `plots/compare/` (all machines overlaid, `plot.py`) or `plots/<machine>/`
+  (that machine only, `plot.py <machine>`); `common/plot_all.sh [machine]` regenerates all of them.
 - `sgx` mode builds `<bin>_sgx` and the signed `<bin>_sgx.enclave.so` (`make sgx`) and
   runs the same driver with the kernels and their data inside the enclave. The enclave heap
   is `ENCLAVE_HEAP` in each bench Makefile (288 MiB for the pointer chases). The signing key
@@ -140,7 +145,8 @@ python3 ../plots/plot.py
 Run everything on one machine:
 ```bash
 for q in q01_pipelined q02_ooo q03_branch q04_rob q05_prf q14_fetch_width q15_pipeline_depth; do
-    $q/bench/run.sh native 2 && $q/bench/run.sh sgx 2 && python3 $q/plots/plot.py
+    $q/bench/run.sh native 2 && $q/bench/run.sh sgx 2 && python3 $q/plots/plot.py            # -> plots/compare/
+    python3 $q/plots/plot.py "$(hostname -s)"   # -> plots/<machine>/
 done
 ```
 
@@ -161,7 +167,15 @@ core structures (pipeline, ROB, register files, predictor, front end), as expect
 modes the all-taken / all-not-taken branch patterns flip between ~2.0 and ~3.2 cycles from
 trial to trial, more often in SGX. This doesn't affect the Q3 / Q15 conclusions.
 
-Not yet done: second machine, PMU verification, step-1 sweeps near the Q4 / Q5 knees.
+### Still to do
+- **Second machine** (required: two machines per exercise). Run the loop above there; results
+  land in `results/<hostname>/` automatically. Fill in the Machines table.
+- **Step-1 sweeps** (code added, not yet run): `q04_rob/bench/zoom.sh` and `q05_prf/bench/zoom.sh`
+  (`native` and `sgx`), then `plots/plot_zoom.py`. Needs a rebuild of the Q4/Q5 kernels. The new
+  Q5 kinds `int_lea`, `int_ind`, `int_andn` (flags / chain controls) also run in the normal
+  `run.sh`; `make ZMM=1` (delete `kernels.S` first) adds AVX-512 `zmm`.
+- **PMU verification**: `common/pmu_verify.sh` (native; Q3/Q15 miss rates, Q1/Q14 IPC).
+- **Report PDF** (`report/OUTLINE.md`), final `AI_LOG.md`, and the ZIP.
 
 ## AI Use Disclosure
 

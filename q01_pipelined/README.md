@@ -30,13 +30,13 @@ add_dep:   .rept 1000            add_indep: .rept 125
 cd q01_pipelined/bench
 ./run.sh native 2          # mode (native|sgx), CPU to pin to
 ./run.sh sgx 2             # kernels run inside an SGX enclave (see common/sgx/README.md)
-python3 ../plots/plot.py   # -> plots/q1_ipc.png + table on stdout
+python3 ../plots/plot.py   # -> plots/compare/q1_ipc.png (or `plot.py <machine>` -> plots/<machine>/) + table on stdout
 ```
 Bench flags: `-t trials` (default 11), `-i iters` (×1000 instructions, default 20000).
 
 ## Run flow
 `run.sh` → `make` → `run_bench` (pins with `taskset`, checks that the SMT sibling is
-idle, records machine info in `machines/`) → `q1_bench` → `results/<host>_<mode>.csv`.
+idle, records machine info in `machines/`) → `q1_bench` → `results/<machine>/<mode>.csv`.
 
 CSV columns: `variant,trial,ticks,cycles,instrs,cpi,ipc`. The `# calib` line gives the
 TSC→cycle ratio; `# recheck` gives the drift at the end of the run.

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Record this machine's CPU/OS/SGX details once, in machines/<host>.txt.
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-out="$REPO_DIR/machines/$(hostname -s).txt"
+out="$REPO_DIR/machines/${MACHINE:-$(hostname -s)}.txt"
 [ -f "$out" ] && exit 0
 mkdir -p "$(dirname "$out")"
 {

@@ -18,3 +18,13 @@ def knee(ns, med):
     d = np.diff(med)
     i = int(np.argmax(d))
     return ns[i], ns[i + 1], d[i]
+
+
+def half_cross(ns, med, window=8):
+    """First N whose median passes halfway between the low plateau (median of the
+    first `window` points) and the high plateau (median of the last `window`).
+    Less sensitive than `knee` to a ragged transition. Returns None if flat."""
+    lo, hi = np.median(med[:window]), np.median(med[-window:])
+    if hi - lo < 0.2 * lo:
+        return None
+    return int(ns[int(np.argmax(med > (lo + hi) / 2))])

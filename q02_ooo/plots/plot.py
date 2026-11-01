@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from plotlib import COLORS, aggregate, load_results, style
+from plotlib import COLORS, aggregate, load_results, style, plot_dir
 
 data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
@@ -40,6 +40,6 @@ ax.set_xticklabels([name(*k) for k in keys], rotation=20, ha="right")
 style(ax, "Q2 — do two independent misses overlap?", "", "cycles per iteration (median, min–max)")
 ax.legend(frameon=False)
 fig.tight_layout()
-out = os.path.join(HERE, "q2_overlap.png")
+out = os.path.join(plot_dir(HERE), "q2_overlap.png")
 fig.savefig(out, dpi=150)
 print("wrote", out)

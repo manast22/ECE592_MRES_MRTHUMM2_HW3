@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from plotlib import COLORS, aggregate, load_results, style
+from plotlib import COLORS, aggregate, load_results, style, plot_dir
 
 VARIANTS = ["add_dep", "add_indep", "imul_dep", "imul_indep"]
 
@@ -40,6 +40,6 @@ ax.set_xticklabels(VARIANTS)
 style(ax, "Q1 — dependent vs. independent chains", "", "instructions per cycle (median, min–max)")
 ax.legend(frameon=False)
 fig.tight_layout()
-out = os.path.join(HERE, "q1_ipc.png")
+out = os.path.join(plot_dir(HERE), "q1_ipc.png")
 fig.savefig(out, dpi=150)
 print("wrote", out)

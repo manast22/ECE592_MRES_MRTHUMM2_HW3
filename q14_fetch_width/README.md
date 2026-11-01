@@ -40,7 +40,7 @@ nop_4_4096:
 cd q14_fetch_width/bench
 ./run.sh native 2
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py    # -> plots/q14_fetch_<host>_<mode>.png + IPC/B-per-cycle table
+python3 ../plots/plot.py    # -> plots/compare/q14_fetch_<machine>_<mode>.png (or `plot.py <machine>` -> plots/<machine>/) + IPC/B-per-cycle table
 ```
 CSV columns: `nop_len,count,footprint_bytes,trial,ticks,cycles,instrs,ipc,bytes_per_cycle`.
 

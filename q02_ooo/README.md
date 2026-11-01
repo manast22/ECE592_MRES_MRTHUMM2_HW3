@@ -43,7 +43,7 @@ Code snippet (`use` kernel loop body):
 cd q02_ooo/bench
 ./run.sh native 2
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py   # -> plots/q2_overlap.png
+python3 ../plots/plot.py   # -> plots/compare/q2_overlap.png (or `plot.py <machine>` -> plots/<machine>/)
 ```
 Bench flags: `-t trials` (11), `-i iters` per measurement (20000), `-s MB` per chain
 (128; must exceed the LLC and, in SGX, fit in the enclave), `-k kinds` filter,

@@ -52,6 +52,23 @@ def filler(kind, n):
                 out.append(f"add %{r}, %{r}")
             else:
                 out.append(f"vpaddd %ymm0, %ymm0, %ymm{1 + (i // 2) % 15}")
+        elif kind == "int_lea":
+            # Q5 control: flags-free writer (lea does not write EFLAGS), still a
+            # short self-chain like `int`.
+            r = INT_REGS[i % len(INT_REGS)]
+            out.append(f"lea 1(%{r}), %{r}")
+        elif kind == "int_ind":
+            # Q5 control: no chains at all. Reads rbp (never written here) and
+            # writes one of the other nine registers; flags-free.
+            r = INT_REGS[i % 9]
+            out.append(f"lea 1(%rbp), %{r}")
+        elif kind == "int_andn":
+            # Q5 control: independent like int_ind but writes EFLAGS (BMI1 andn).
+            r = INT_REGS[i % 9]
+            out.append(f"andn %rbp, %rbp, %{r}")
+        elif kind == "zmm":
+            # Needs AVX-512. Source zmm0 is never written.
+            out.append(f"vpaddd %zmm0, %zmm0, %zmm{1 + i % 15}")
         else:
             raise ValueError(kind)
     return out
@@ -71,14 +88,18 @@ def kernel(name, body):
 
 
 def parse_range(s):
-    lo, hi, step = (int(x) for x in s.split(":"))
-    return list(range(lo, hi + 1, step))
+    """"lo:hi:step[,lo:hi:step...]" -> sorted union of the ranges."""
+    ns = set()
+    for part in s.split(","):
+        lo, hi, step = (int(x) for x in part.split(":"))
+        ns.update(range(lo, hi + 1, step))
+    return sorted(ns)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--kinds", default="nop", help="comma list of nop,int,ymm,mix")
-    ap.add_argument("--n", default="0:800:8", help="lo:hi:step filler counts")
+    ap.add_argument("--kinds", default="nop", help="comma list of nop,int,ymm,mix,int_lea,int_ind,int_andn,zmm")
+    ap.add_argument("--n", default="0:800:8", help="lo:hi:step filler counts; comma-separate several ranges (union), e.g. 0:800:8,480:528:1")
     ap.add_argument("--extra", action="store_true", help="add Q2 single/serial/use kernels")
     args = ap.parse_args()
 

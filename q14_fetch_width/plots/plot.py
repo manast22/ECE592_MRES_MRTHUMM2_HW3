@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "common"))
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from plotlib import COLORS, MARKERS, aggregate, load_results, style
+from plotlib import COLORS, MARKERS, aggregate, load_results, style, plot_dir
 
 data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
@@ -33,6 +33,6 @@ for label, d in data.items():
     style(ax2, "Bytes per cycle", "NOP length (bytes)", "bytes per cycle")
     ax1.legend(frameon=False, fontsize=8, title="NOPs per block", title_fontsize=8)
     fig.tight_layout()
-    out = os.path.join(HERE, f"q14_fetch_{label}.png")
+    out = os.path.join(plot_dir(HERE), f"q14_fetch_{label}.png")
     fig.savefig(out, dpi=150)
     print("wrote", out)

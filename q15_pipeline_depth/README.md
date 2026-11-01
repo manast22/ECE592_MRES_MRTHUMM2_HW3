@@ -33,7 +33,7 @@ The F = 0.5 point is the textbook "(random − predictable) / mispredicts".
 cd q15_pipeline_depth/bench
 ./run.sh native 2
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py   # -> plots/q15_penalty.png + penalty table
+python3 ../plots/plot.py   # -> plots/compare/q15_penalty.png (or `plot.py <machine>` -> plots/<machine>/) + penalty table
 ```
 
 ## Interpreting results

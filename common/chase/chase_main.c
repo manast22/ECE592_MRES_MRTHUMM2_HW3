@@ -25,24 +25,39 @@ static int selected(const char *kind, const char *filter)
     return 0;
 }
 
+/* "-n lo:hi:step": run only entries whose filler count is lo, lo+step, ... <= hi. */
+static int n_selected(uint64_t n, uint64_t lo, uint64_t hi, uint64_t step)
+{
+    return n >= lo && n <= hi && (n - lo) % step == 0;
+}
+
 int main(int argc, char **argv)
 {
     int trials = 11, thp = 0;
     size_t mb = 128;
     uint64_t iters = 20000, seed = 0x9e3779b97f4a7c15ULL;
     const char *filter = NULL;
+    uint64_t n_lo = 0, n_hi = UINT64_MAX, n_step = 1;
     int opt;
-    while ((opt = getopt(argc, argv, "t:i:s:k:Hr:")) != -1) {
+    while ((opt = getopt(argc, argv, "t:i:s:k:n:Hr:")) != -1) {
         switch (opt) {
         case 't': trials = atoi(optarg); break;
         case 'i': iters = strtoull(optarg, NULL, 0); break;
         case 's': mb = strtoull(optarg, NULL, 0); break;
         case 'k': filter = optarg; break;
+        case 'n':
+            if (sscanf(optarg, "%llu:%llu:%llu", (unsigned long long *)&n_lo,
+                       (unsigned long long *)&n_hi, (unsigned long long *)&n_step) != 3 || !n_step) {
+                fprintf(stderr, "-n expects lo:hi:step\n");
+                return 1;
+            }
+            break;
         case 'H': thp = 1; break;
         case 'r': seed = strtoull(optarg, NULL, 0); break;
         default:
             fprintf(stderr,
-                    "usage: %s [-t trials] [-i iters] [-s MB per chain] [-k kinds] [-H] [-r seed]\n"
+                    "usage: %s [-t trials] [-i iters] [-s MB per chain] [-k kinds] [-n lo:hi:step] [-H] [-r seed]\n"
+                    "  -n  only run kernels with filler count lo, lo+step, ... <= hi\n"
                     "  -H  request transparent huge pages (native only; enclaves use 4 KB)\n",
                     argv[0]);
             return 1;
@@ -71,7 +86,7 @@ int main(int argc, char **argv)
     printf("kind,n,trial,ticks,cycles,iters,cyc_per_iter\n");
     for (int t = 0; t < trials; t++) {
         for (uint64_t e = 0; e < n; e++) {
-            if (!selected(kind[e], filter))
+            if (!selected(kind[e], filter) || !n_selected(fill[e], n_lo, n_hi, n_step))
                 continue;
             kb_run(e, 256);   /* warm code + TLB path */
             uint64_t ticks = kb_run(e, iters);

@@ -5,10 +5,15 @@
 # MODE: native  - plain process pinned with taskset
 #       sgx     - same driver; the timed kernels and their data run inside an
 #                 Intel SGX SDK enclave (BINARY_sgx + BINARY_sgx.enclave.so)
-# Output: OUTFILE gets "# ..." metadata lines followed by the benchmark's CSV.
+# Output: OUTFILE (normally ../results/$(machine_name)/$MODE.csv) gets "# ..." metadata lines followed by the benchmark's CSV.
 
 COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$COMMON_DIR")"
+
+# Machine name used to route results (results/<machine>/<mode>.csv) and
+# machines/<machine>.txt. Defaults to the short hostname; override with
+# MACHINE=name ./run.sh ... if the hostname is not a stable identifier.
+machine_name() { echo "${MACHINE:-$(hostname -s)}"; }
 
 # Print the SMT sibling of $1 and how busy it was over 0.5 s.
 sibling_check() {
@@ -27,7 +32,7 @@ sibling_check() {
 
 sgx_check() {
     if [ ! -e /dev/sgx_enclave ]; then
-        echo "error: /dev/sgx_enclave not found: SGX is not enabled on $(hostname -s)" >&2
+        echo "error: /dev/sgx_enclave not found: SGX is not enabled on $(machine_name)" >&2
         return 1
     fi
     if [ ! -r /dev/sgx_enclave ] || [ ! -w /dev/sgx_enclave ]; then
@@ -54,7 +59,7 @@ run_bench() {
     sibling_check "$cpu"
     echo ">> ${cmd[*]}  >  $out" >&2
     {
-        echo "# host $(hostname -s) mode $mode cpu $cpu sibling_busy_pct $SIBLING_BUSY date $(date -Is)"
+        echo "# host $(machine_name) mode $mode cpu $cpu sibling_busy_pct $SIBLING_BUSY date $(date -Is)"
         echo "# cmd ${cmd[*]}"
         "${cmd[@]}"
     } > "$out"

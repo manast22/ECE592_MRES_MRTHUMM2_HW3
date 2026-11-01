@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from knee import knee, sweep
-from plotlib import COLORS, MARKERS, load_results, style
+from plotlib import COLORS, MARKERS, load_results, style, plot_dir
 
 data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
@@ -29,6 +29,6 @@ style(ax, "Q4 — miss / N NOPs / independent miss", "filler NOPs between the tw
       "cycles per iteration (median, band = min–max)")
 ax.legend(frameon=False)
 fig.tight_layout()
-out = os.path.join(HERE, "q4_rob.png")
+out = os.path.join(plot_dir(HERE), "q4_rob.png")
 fig.savefig(out, dpi=150)
 print("wrote", out)

@@ -8,4 +8,4 @@ MODE=${1:-native}
 CPU=${2:-2}
 shift $(( $# < 2 ? $# : 2 ))
 
-run_bench "$MODE" "$CPU" "../results/$(hostname -s)_${MODE}.csv" q2_bench -t 11 "$@"
+run_bench "$MODE" "$CPU" "../results/$(machine_name)/${MODE}.csv" q2_bench -t 11 "$@"
