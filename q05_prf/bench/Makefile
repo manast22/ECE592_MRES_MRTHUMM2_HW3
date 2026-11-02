@@ -1,7 +1,7 @@
 BIN        := q5_bench
 DRIVER_SRC := ../../common/chase/chase_main.c
 KT_SRC     := ../../common/chase/chase_kt.c kernels.S
-GENERATED  := kernels.S
+GENERATED  := kernels.S xinuse
 # register-writing filler: integer, ymm vector, and alternating int/ymm, plus
 # integer controls: flags-free lea (reg+imm), independent lea, independent flags-writing
 # andn, independent flags-free shlx (no immediate), and reg+reg lea (no immediate);
@@ -22,3 +22,6 @@ include ../../common/common.mk
 
 kernels.S: $(COMMON)/chase/gen_chase.py .gen_args
 	python3 $< $(GEN_ARGS) > $@
+
+xinuse: xinuse.c
+	$(CC) $(CFLAGS) -o $@ $<

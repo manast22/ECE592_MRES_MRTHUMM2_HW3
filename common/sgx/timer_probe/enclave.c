@@ -33,3 +33,10 @@ void ecall_add_chain(uint64_t iters)
 void ecall_nop(void)
 {
 }
+
+void ecall_xinuse(uint64_t *v)
+{
+    uint32_t a, d;
+    __asm__ volatile("xgetbv" : "=a"(a), "=d"(d) : "c"(1));
+    *v = ((uint64_t)d << 32) | a;
+}

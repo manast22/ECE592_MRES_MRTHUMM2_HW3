@@ -3,7 +3,8 @@
  * 2. What is its resolution there (back-to-back deltas)?
  * 3. Do inside-enclave timing, host-side ECALL timing and native timing agree
  *    on the same 2e7-cycle dependent add chain?
- * 4. How much does an empty ECALL cost? */
+ * 4. How much does an empty ECALL cost?
+ * 5. Which extended register state is in use inside the enclave? */
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -82,6 +83,12 @@ int main(int argc, char **argv)
     }
     double ov = median_d(nop, TRIALS);
     printf("empty ECALL round trip: %.0f ticks = %.0f cycles\n", ov, ov * c.cyc_per_tick);
+
+    /* 5. extended state in use inside the enclave (bit 7: zmm16-31 / ymm16-31) */
+    uint64_t xin;
+    check(ecall_xinuse(eid, &xin), "xgetbv(1) inside enclave");
+    printf("enclave XINUSE=%#llx hi16_zmm_in_use=%llu\n", (unsigned long long)xin,
+           (unsigned long long)(xin >> 7 & 1));
 
     sgx_destroy_enclave(eid);
     return 0;

@@ -49,6 +49,7 @@ cd q05_prf/bench
 ./zoom.sh sgx 2
 ./ymm_state.sh native 2     # ymm vs ymm_hi (ymm16-31 written first), N = 220-280
 ./ymm_state.sh sgx 2
+make xinuse && ./xinuse     # is ymm16-31 state in use? (enclave: common/sgx/timer_probe/probe_app)
 python3 ../plots/plot.py       # -> plots/compare/q5_prf.png + knees on stdout
 python3 ../plots/plot_zoom.py  # -> plots/compare/q5_prf_zoom.png + halfway crossings
 ```
@@ -96,13 +97,20 @@ Conclusions:
    ROB. The int and vector writes fill different structures; with one shared file the mix knee
    would match the int knee.
 4. **Vector PRF and the native-vs-SGX difference:** natively ~244 free vector entries; inside
-   the enclave ~262 (19 of 21 trials each). `ymm_state.sh` shows why. Writing ymm16–31 before
-   the sweep brings the enclave down to **244**, the native value, and changes nothing natively
-   (241 vs 241). In a normal process, glibc's AVX-512 string/memory routines leave ymm16–31
-   in use, and those 16 architectural registers pin physical vector registers. The enclave's
-   trusted libc never touches them. So the difference is architectural state, not an enclave
-   effect on the hardware; a good example of a native-vs-enclave difference that needs care
-   to interpret.
+   the enclave ~262 (19 of 21 trials each in the zoom). Two pieces of evidence point to
+   architectural state rather than an enclave effect on the hardware:
+   - **Knee (`ymm_state.sh`):** writing ymm16–31 before the sweep moves the enclave's median
+     knee from 263 to 244 (12 of 21 trials exactly at 244, the rest spread up to 263) and changes
+     nothing natively (241 vs 241).
+   - **In-use bits (`xinuse.c`, `results/<machine>/ymm_state/xinuse.txt`):** `xgetbv(1)` bit 7
+     (zmm16–31 in use) is 1 in a default native process, already at the start of `main`; 0 with
+     glibc's AVX-512 paths disabled through `GLIBC_TUNABLES`; and 0 in the enclave. So glibc
+     (including the startup code that runs before `main`) is what leaves those registers in use.
+
+   Still unconfirmed: the matching native sweep with `GLIBC_TUNABLES` set. It should move the
+   native knee up to ~262. The one run so far gave a median of 255 (most trials 253–270), but
+   another user's job was loading the machine, and the default-setting runs in that same
+   session were noisy too (medians 207 and 229). Repeat it when Artemisia is quiet before citing it.
 
 Earlier coarse-grid notes (still valid): the native ymm transition looked ragged across
 240–272. With 21 trials at step 1 it is a clean step at 241–244 in 19 of 21 trials; the

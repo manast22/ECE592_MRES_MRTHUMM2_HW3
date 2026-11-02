@@ -181,9 +181,9 @@ PMU checks: native only (Nov 1).
 | 2 | 1 miss 361 cyc; 2 dependent 2.00×; 2 indep 1.01×; with consumer 1.04× → out-of-order | 1 miss **415 cyc (+15%)**; 1.94× / 1.04× / 1.08× | – |
 | 3 | Random 14.1 cyc/branch vs 3.0–3.6 learnable; periods ≤ 4096 learned | identical | ✓ miss rate 0.0000 (alt, period:16, taken) vs 0.4997 (random) |
 | 4 | Step-1: full serialization from **N = 498** (ramp 493–497) → **ROB ≈ 500** (published 512) | identical knee (N = 498), higher plateaus | – |
-| 5 | Free int regs **≈ 210** (add/andn/shlx/lea r,r all 207–215: flags irrelevant); `lea reg+imm` allocates no register; mix ≈ 2× int → separate int / vector files; free vector **≈ 244** | int / mix identical; vector **≈ 262**. Explained: writing ymm16–31 first gives 244 in SGX too. glibc leaves ymm16–31 in use natively; the enclave's libc doesn't | – |
+| 5 | Free int regs **≈ 210** (add/andn/shlx/lea r,r all 207–215: flags irrelevant); `lea reg+imm` allocates no register; mix ≈ 2× int → separate int / vector files; free vector **≈ 244** | int / mix identical; vector **≈ 262**. Writing ymm16–31 first gives 244 in SGX too; `xgetbv(1)` shows ymm16–31 in use natively (from glibc) and not in the enclave | – |
 | 14 | ≈ 6 instr/cycle; legacy fetch ≥ 29 B/cycle; L2-fed 12.8 B/cycle | identical | – |
-| 15 | **22.3 cyc per mispredict**, timing only: (t_random − t_alt) / 0.5, exact because a fair coin is mispredicted 50% by any predictor | **22.2** | ✓ 22.4–23.6 using measured miss rates; timing-implied miss rates match the PMU within 0.007 |
+| 15 | **22.3 cyc per mispredict**, timing only: (t_random − t_alt) / 0.5, exact because a fair coin is mispredicted 50% by any predictor | **22.2** | ✓ 22.4–23.6 using measured miss rates; timing-implied miss rates match the PMU within 0.013 |
 
 Observed: the enclave changes **memory** cost (encrypted EPC, +15% per miss) but not core
 structures. The one structural-looking difference (Q5 vector) is architectural *state*, shown

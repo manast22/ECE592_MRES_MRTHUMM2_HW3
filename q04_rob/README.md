@@ -69,10 +69,9 @@ sgx      557  558  575  618  659  690  741  923  927  925
   miss is fully serialized from **N = 498**, in both modes.
 - The per-trial halfway crossing is at N = 497–498 in 18 of 21 native trials and all 21 SGX trials.
 - → **ROB ≈ 500 entries** (N + 2 loads) measured, vs 512 published (−2.3%).
-- The 493–497 ramp is a phase effect: the previous iteration's load B can still be at the ROB
-  head for a few cycles when load A issues, so the usable window is slightly smaller in some
-  iterations. This, and possibly entries kept back by the core, would explain the gap to 512.
-  Report it as measured ≈ 500, consistent with 512.
+- The 493–497 ramp and the ~12-entry gap to 512 are not explained by this data. One hypothesis
+  (untested): the previous iteration's load B can still be at the ROB head when load A issues,
+  so the usable window shrinks in some iterations. Report measured ≈ 500 and state the gap.
 
 **SGX enclave (same machine, 11 trials):** same jump, N = 496 → 504 (+223 cycles). Plateaus are higher because enclave misses cost more: 436 cycles at N = 0 and 890 at N = 504, vs 374 and 766 natively. The ROB estimate is unchanged.
 

@@ -31,11 +31,15 @@ def main():
             continue
         ns = sorted(by_n)
         med = [statistics.median(by_n[n]) for n in ns]
-        steps = [med[i + 1] - med[i] for i in range(len(med) - 1)]
-        i = max(range(len(steps)), key=steps.__getitem__)
         if med[-1] - med[0] < 0.4 * med[0]:
             continue   # no knee in range (e.g. lea reg+imm filler)
-        windows.append([max(0, ns[i] - pad), ns[i + 1] + pad])
+        # First crossing of the mid level that stays above it for 3 points, so a
+        # one-off slow measurement cannot pull the window away from the real knee.
+        mid = (med[0] + med[-1]) / 2
+        i = next((i for i in range(1, len(med) - 2) if min(med[i:i + 3]) > mid), None)
+        if i is None:
+            continue
+        windows.append([max(0, ns[i - 1] - pad), ns[i] + pad])
     windows.sort()
     merged = []
     for w in windows:

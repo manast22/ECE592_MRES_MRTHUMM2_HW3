@@ -1,0 +1,4 @@
+# 2026-11-01T21:12:33-05:00 artemisia: XINUSE evidence for the native-vs-SGX ymm knee (bit 7 = zmm16-31/ymm16-31 in use)
+native default:        XINUSE=0x2a2 hi16_zmm_in_use=1
+native AVX-512 glibc off: XINUSE=0x202 hi16_zmm_in_use=0
+SGX enclave:           enclave XINUSE=0x2 hi16_zmm_in_use=0

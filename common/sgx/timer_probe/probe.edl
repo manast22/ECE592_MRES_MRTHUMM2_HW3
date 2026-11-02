@@ -10,5 +10,7 @@ enclave {
         public void ecall_add_chain(uint64_t iters);
         /* Empty call: ECALL round-trip overhead. */
         public void ecall_nop(void);
+        /* XINUSE inside the enclave: which extended state is in use. */
+        public void ecall_xinuse([out] uint64_t *v);
     };
 };

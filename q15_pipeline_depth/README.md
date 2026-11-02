@@ -77,7 +77,7 @@ Miss rate implied by timing vs measured by the PMU (native counters; none in the
   bound on fetch→execute depth: it measures the refill from the front end to branch
   resolution, minus any overlap. For context, published Golden Cove figures are ~17 cycles
   minimum, more when the refill misses the µop cache.
-- Timing alone reproduces the PMU miss rates within 0.007 at every F. Natively that is an
+- Timing alone reproduces the PMU miss rates: within 0.013 natively (largest gap at F = 0.15, 0.237 vs 0.224) and within 0.007 in SGX. Natively that is an
   independent check of the method. In the enclave, where counters are hidden, it shows the
   predictor behaves the same (SGX implied rates match native).
 - The predictor mispredicts well above the best possible rate on biased noise: ~1.7–1.9× F
