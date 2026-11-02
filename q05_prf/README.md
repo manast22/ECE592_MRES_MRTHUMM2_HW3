@@ -67,7 +67,7 @@ Run Q4 first if you want the NOP reference line on the plot. Outputs:
   the test is simply knee(mix) well above both single-class knees.
 - Native vs SGX: knee positions should match.
 
-Crux (native, no AVX-512, no SGX yet): int family 138–145, ymm 148, mix 208. `int_lea` and
+Crux (native, no AVX-512, no SGX access): int family 138–145, ymm 148, mix 208. `int_lea` and
 `int_ind` hit the same limit as `add`, unlike artemisia. **Open:** mix at 208 is about 15
 short of the ROB knee (223), with no explanation yet; separate classes still hold.
 

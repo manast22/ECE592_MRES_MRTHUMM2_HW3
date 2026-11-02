@@ -203,7 +203,7 @@ from other users' load on Artemisia; they show only in the min–max bands, not 
 
 ## Results Status (crux, native, CPU 2; updated Nov 1)
 
-Coarse sweeps: 11 trials. Q4/Q5 step-1 zooms: 21 trials. SGX: not run (off in firmware).
+Coarse sweeps: 11 trials. Q4/Q5 step-1 zooms: 21 trials. SGX: not run (no access; off in firmware).
 Conclusions come from timing; the PMU column is validation run afterwards (`report/pmu_tables.md`).
 
 | Q | Native (timing) | PMU check |
@@ -221,14 +221,12 @@ Open on crux: Q3's no-miss patterns cost 3.5–5.0 cycles with no mispredicts, l
 knees sit below published PRF sizes.
 
 ### Still to do
-- **SGX on crux** (optional, Artemisia already gives the enclave comparison): enable in firmware,
-  install the SDK, join the `sgx` group, then `common/run_all.sh 2 sgx`.
 - Optional: Q14 legacy-fetch ceiling (K ≈ 4608), a repeat Artemisia run at a quieter time.
 - **Report PDF** (`report/OUTLINE.md`), final `AI_LOG.md`, and the ZIP.
 
 ## AI Use Disclosure
 
-AI (Claude Code) was used for planning and README drafting; see `AI_LOG.md` for the full log.
+AI was used throughout: Claude Chat helped with the original plan, and Claude Code was used for the harness, experiment runs, analysis, documentation and the report draft. See `AI_LOG.md` for the full log.
 
 ## Deliverable
 
