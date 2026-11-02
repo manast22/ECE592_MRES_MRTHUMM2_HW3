@@ -66,6 +66,21 @@ def filler(kind, n):
             # Q5 control: independent like int_ind but writes EFLAGS (BMI1 andn).
             r = INT_REGS[i % 9]
             out.append(f"andn %rbp, %rbp, %{r}")
+        elif kind == "int_shlx":
+            # Q5 control: independent, flags-free, and no immediate (BMI2 shlx),
+            # so rename can neither fold an immediate nor skip a flags write.
+            r = INT_REGS[i % 9]
+            out.append(f"shlx %rbp, %rbp, %{r}")
+        elif kind == "int_lea2":
+            # Q5 control: flags-free lea with two register sources and no
+            # immediate, to separate "flags-free" from "reg+imm lea".
+            r = INT_REGS[i % 9]
+            out.append(f"lea (%rbp,%rbp), %{r}")
+        elif kind == "ymm_hi":
+            # Q5 control: same filler as `ymm`; the kernel prologue (see
+            # PROLOGUE) first writes ymm16-31 so that upper vector state is
+            # in use, as it is natively after glibc's AVX-512 string routines.
+            out.append(f"vpaddd %ymm0, %ymm0, %ymm{1 + i % 15}")
         elif kind == "zmm":
             # Needs AVX-512. Source zmm0 is never written.
             out.append(f"vpaddd %zmm0, %zmm0, %zmm{1 + i % 15}")
@@ -74,10 +89,17 @@ def filler(kind, n):
     return out
 
 
-def kernel(name, body):
+# Extra instructions run once per call, before the loop, for some kinds.
+PROLOGUE = {
+    "ymm_hi": [f"vpaddd %ymm0, %ymm0, %ymm{r}" for r in range(16, 32)],
+}
+
+
+def kernel(name, body, prologue=()):
     lines = [f"    .globl {name}", "    .p2align 6", f"{name}:"]
     lines += [f"    push %{r}" for r in CALLEE_SAVED]
     lines += ["    mov (%rdi), %rax", "    mov (%rsi), %rcx", "    vpxor %ymm0, %ymm0, %ymm0"]
+    lines += ["    " + p for p in prologue]
     lines += ["    .p2align 5", "1:"]
     lines += ["    " + b for b in body]
     lines += ["    dec %rdx", "    jnz 1b"]
@@ -120,7 +142,7 @@ def main():
         for n in parse_range(args.n):
             sym = f"chase_{kind}_{n}"
             body = ["mov (%rax), %rax"] + filler(kind, n) + ["mov (%rcx), %rcx"] + filler(kind, n)
-            asm += kernel(sym, body)
+            asm += kernel(sym, body, PROLOGUE.get(kind, ()))
             entries.append((sym, kind, n))
 
     asm += ["    .section .rodata"]

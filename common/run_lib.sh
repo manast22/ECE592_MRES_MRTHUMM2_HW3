@@ -64,3 +64,25 @@ run_bench() {
         "${cmd[@]}"
     } > "$out"
 }
+
+# zoom_setup MODE KINDS DEFAULT
+# Chooses the step-1 window(s) for zoom.sh and exports ZOOM (read by the bench
+# Makefile, which regenerates the kernels when it changes). Order of preference:
+# ZOOM already set by the user; knees from this machine's native coarse run
+# (../results/<machine>/native.csv), else its MODE coarse run; else DEFAULT.
+# Sets ZOOM_N to "lo:hi:1" spanning all windows (the driver's -n argument).
+zoom_setup() {
+    local mode=$1 kinds=$2 default=$3 csv
+    if [ -z "${ZOOM:-}" ]; then
+        for csv in "../results/$(machine_name)/native.csv" "../results/$(machine_name)/${mode}.csv"; do
+            [ -f "$csv" ] && ZOOM=$(python3 "$COMMON_DIR/zoom_window.py" "$csv" "$kinds" 24) && [ -n "$ZOOM" ] && break
+        done
+        if [ -z "${ZOOM:-}" ]; then
+            echo "note: no coarse results for $(machine_name) yet (run ./run.sh first); using default window $default" >&2
+            ZOOM=$default
+        fi
+    fi
+    export ZOOM
+    ZOOM_N=$(echo "$ZOOM" | tr ',' '\n' | awk -F: 'NR==1{lo=$1;hi=$2} {if($1<lo)lo=$1; if($2>hi)hi=$2} END{print lo":"hi":1"}')
+    echo "zoom window(s): $ZOOM  (driver -n $ZOOM_N)" >&2
+}

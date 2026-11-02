@@ -72,6 +72,8 @@ patterns → branch prediction. Repeating patterns up to 4096 branches long are 
 
 **SGX enclave (same machine, 11 trials):** identical within noise (random 14.16, alt 3.00, period:4096 3.55, period:16384 12.83). In both modes the all-taken / all-not-taken patterns flip between ~2.0 and ~3.2 cycles from trial to trial (more often in SGX: `taken` median 2.30). Cause not yet known; it doesn't change the conclusion.
 
-## PMU verification (later)
-`perf stat -e branches,branch-misses ./q3_bench -p alt,random -t 3`: the miss rate
-should be ≈ 0% for `alt` and ≈ 50% for `random`.
+## PMU verification (done Nov 1, native)
+From `q15_pipeline_depth/bench/pmu.sh` (same kernel; difference method, 12.6 M data branches
+per pattern): `branch-misses:u` per data branch is **0.0000** for `nottaken`, `taken`, `alt` and
+`period:16`, and **0.4997** for `random`. So the slow pattern is slow because of mispredictions,
+and the patterned ones are predicted perfectly. This confirms the timing-based conclusion.

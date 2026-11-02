@@ -25,6 +25,6 @@ def half_cross(ns, med, window=8):
     first `window` points) and the high plateau (median of the last `window`).
     Less sensitive than `knee` to a ragged transition. Returns None if flat."""
     lo, hi = np.median(med[:window]), np.median(med[-window:])
-    if hi - lo < 0.2 * lo:
+    if hi - lo < 0.4 * lo:   # a real knee nearly doubles the time; slow drift is not one
         return None
     return int(ns[int(np.argmax(med > (lo + hi) / 2))])

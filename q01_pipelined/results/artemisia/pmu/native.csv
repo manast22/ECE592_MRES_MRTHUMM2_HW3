@@ -1,0 +1,6 @@
+# host artemisia mode native cpu 6 date 2026-11-01T17:32:04-05:00 method=diff(-i 40000 minus -i 20000) trials=3
+variant,d_cycles,d_instructions,pmu_ipc
+add_dep,66055097,66132351,1.0012
+add_indep,14009186,66131482,4.7206
+imul_dep,199938696,66132914,0.3308
+imul_indep,64664434,66131463,1.0227

@@ -57,9 +57,22 @@ the driver option `-n lo:hi:step` picks which kernels run.
   because enclave misses are slower.
 
 ## Baseline (artemisia, native, CPU 2, 11 trials)
-Jump between **N = 496 and N = 504** (+194 cycles) → ROB ≈ **500–506 entries** measured.
-Published spec for Golden Cove / Sapphire Rapids: 512. Confirm with a step-1 sweep over
-480–520.
+Coarse sweep (step 8): jump between **N = 496 and N = 504** (+194 cycles).
+
+**Step-1 zoom (Nov 1, N = 470–530, 21 trials, `zoom.sh`):**
+```
+N        488  492  493  494  495  496  497  498  500  504
+native   477  477  488  523  548  573  617  764  765  766   cycles/iter (median)
+sgx      557  558  575  618  659  690  741  923  927  925
+```
+- Overlap holds up to N ≈ 492. A short partial ramp runs over 493–497, and the second
+  miss is fully serialized from **N = 498**, in both modes.
+- The per-trial halfway crossing is at N = 497–498 in 18 of 21 native trials and all 21 SGX trials.
+- → **ROB ≈ 500 entries** (N + 2 loads) measured, vs 512 published (−2.3%).
+- The 493–497 ramp is a phase effect: the previous iteration's load B can still be at the ROB
+  head for a few cycles when load A issues, so the usable window is slightly smaller in some
+  iterations. This, and possibly entries kept back by the core, would explain the gap to 512.
+  Report it as measured ≈ 500, consistent with 512.
 
 **SGX enclave (same machine, 11 trials):** same jump, N = 496 → 504 (+223 cycles). Plateaus are higher because enclave misses cost more: 436 cycles at N = 0 and 890 at N = 504, vs 374 and 766 natively. The ROB estimate is unchanged.
 

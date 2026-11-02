@@ -18,3 +18,4 @@ common/sgx/timer_probe/enclave.so
 common/sgx/timer_probe/enclave.signed.so
 common/sgx/timer_probe/probe_[tu].[ch]
 __pycache__/
+.gen_args

@@ -11,55 +11,107 @@ Estimate it as
 ```
 penalty = (t_unpredictable − t_predictable) / mispredicts
 ```
+The difficulty is knowing *mispredicts* without performance counters. The method below
+uses the one case where it is known exactly.
+
+## Method (timing only)
+**Anchor: a fair coin.** For i.i.d. 50/50 outcomes (`bias:0.50`), *every* predictor
+mispredicts exactly half the time in expectation. The outcome is independent of everything
+the predictor can observe, so no history, table or algorithm helps or hurts. With `alt` as
+the baseline, the penalty is exact:
+```
+P = (t(bias:0.50) − t_alt) / 0.5
+```
+`alt` (1010…) has the same 50/50 path mix and is perfectly predicted; it sits on the same
+minimum cost as `period:4/16`. `period:16` is printed as an alternative baseline to show
+the result's sensitivity to the choice.
+
+**Biased coins (F < 0.5) only bound the miss rate from below.** The best possible predictor
+mispredicts min(F, 1−F), and a real one can only do worse. So
+`(t(F) − base(F)) / min(F, 1−F)` is an **upper bound** on P, tightest at F = 0.5.
+Given P, the timing *implies* the actual miss rate at each F:
+```
+base(F) = t_one + 2·F·(t_alt − t_one)      # perfectly predicted cost at path mix F
+miss(F) = (t(F) − base(F)) / P             # t_one = lower median of taken / nottaken
+```
+
+**History:** the first analysis divided by min(F, 1−F) as if it were the miss rate, so
+the "penalty" drifted from 43 to 22 cycles. Those values are really upper bounds. The PMU
+check below confirmed that the predictor mispredicts more than min(F, 1−F), and that the
+F = 0.5 point is right.
 
 ## Implementation
 This reuses the Q3 kernel and driver. `bench/Makefile` builds `q15_bench` from
-`q03_branch/bench/` sources; only the pattern list differs.
-
-`run.sh` measures:
-- predictable baselines: `taken`, `nottaken`, `alt`, `period:16`;
-- i.i.d. patterns with taken probability **F = 0.00 … 0.50** (`bias:F`). A predictor that
-  guesses the majority direction mispredicts ≈ min(F, 1−F) of the time.
-
-`plots/plot.py` computes, for every F:
-```
-base(F)    = t_nottaken + 2·F·(t_alt − t_nottaken)   # perfectly predicted cost at this path mix
-penalty(F) = (t(F) − base(F)) / F
-```
-The F = 0.5 point is the textbook "(random − predictable) / mispredicts".
+`q03_branch/bench/` sources; only the pattern list differs. `run.sh` measures the
+predictable baselines (`taken`, `nottaken`, `alt`, `period:16`) and i.i.d. patterns with taken
+probability F = 0.00 … 0.50 (`bias:F`). `plots/plot.py` implements the method above. If
+`results/<machine>/pmu/native.csv` exists, it overlays the PMU-measured miss rates.
 
 ## How to run
 ```bash
 cd q15_pipeline_depth/bench
 ./run.sh native 2
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py   # -> plots/compare/q15_penalty.png (or `plot.py <machine>` -> plots/<machine>/) + penalty table
+./pmu.sh 2                  # optional, native only: PMU check (perf stat)
+python3 ../plots/plot.py    # -> plots/compare/q15_penalty.png + table
+python3 ../plots/plot_pmu.py   # -> plots/compare/q15_pmu.png (needs pmu.sh output)
 ```
 
-## Interpreting results
-- Left panel: cost per branch rises with F. Right panel: implied cycles per mispredict.
-- If the penalty is constant across F, the model fits. If it varies, the assumption
-  "mispredicts = min(F, 1−F)" is off (the predictor does worse than majority-vote on
-  noise) and/or mispredicts overlap with each other.
-  **This needs PMU verification:** take the measured `branch-misses` per F and recompute.
-
-## Baseline (artemisia, native, CPU 2, 11 trials)
-| F | cycles/branch | implied penalty |
+## Results (artemisia, CPU 2, 11 trials)
+| | penalty P (`alt` baseline) | `period:16` baseline |
 |---|---|---|
-| 0.05 | 4.24 | 41.7 |
-| 0.25 | 10.07 | 30.0 |
-| 0.50 (random) | 14.20 | **22.3** |
+| native | **22.3 cycles** | 22.5 |
+| SGX | **22.2 cycles** | 22.6 |
 
-At F = 0.5: ~22 cycles per mispredict, consistent with published figures for Golden
-Cove (~17+ cycles minimum, higher on a µop-cache miss). The penalty implied at low F is
-too high. Most likely the predictor mispredicts *more* than F on biased noise (it
-sometimes follows spurious history), so "mispredicts = F" undercounts. Resolve this with
-`perf stat -e branch-misses` before quoting a final number.
+Miss rate implied by timing vs measured by the PMU (native counters; none in the enclave):
 
-**SGX enclave (same machine, 11 trials):** 22.2 cycles per mispredict at F = 0.5 (native 22.3). Same F-dependence (37 → 22).
+| F | best possible | implied, native | implied, SGX | PMU (native) |
+|---|---|---|---|---|
+| 0.05 | 0.050 | 0.096 | 0.084 | 0.089 |
+| 0.10 | 0.100 | 0.175 | 0.165 | 0.169 |
+| 0.25 | 0.250 | 0.339 | 0.333 | 0.339 |
+| 0.40 | 0.400 | 0.456 | 0.454 | 0.461 |
+| 0.50 | 0.500 | 0.500 | 0.500 | 0.500 |
 
-## PMU verification (later)
-```bash
-for f in 0.05 0.25 0.5; do perf stat -e branches,branch-misses ./q15_bench -p bias:$f -t 3; done
-```
-Replace min(F, 1−F) with the measured miss rate and check that the penalty becomes flat.
+- **Penalty ≈ 22–23 cycles per mispredict**, the same native and in the enclave. It is a lower
+  bound on fetch→execute depth: it measures the refill from the front end to branch
+  resolution, minus any overlap. For context, published Golden Cove figures are ~17 cycles
+  minimum, more when the refill misses the µop cache.
+- Timing alone reproduces the PMU miss rates within 0.007 at every F. Natively that is an
+  independent check of the method. In the enclave, where counters are hidden, it shows the
+  predictor behaves the same (SGX implied rates match native).
+- The predictor mispredicts well above the best possible rate on biased noise: ~1.7–1.9× F
+  at small F. It presumably keeps learning spurious patterns from the random history.
+- The SGX low-F implied rates are slightly below native because SGX's `taken`/`nottaken`
+  medians sit in their slow mode (2.30 vs 2.00; the bimodal pattern noted in Q3), which
+  raises base(F). This doesn't affect P.
+
+## PMU verification (done Nov 1, native): penalty ≈ 23 cycles, flat across F
+`bench/pmu.sh` counts `branches:u`, `branch-misses:u`, `cycles:u`, `instructions:u` for each
+pattern. It runs the bench with 8 and with 4 timed passes and subtracts, so everything except
+exactly 3 × 4 × 1 MiB = 12.6 M data branches cancels. `plots/plot_pmu.py` →
+`plots/compare/q15_pmu.png`.
+
+| F | assumed miss rate | **measured** miss rate | penalty, assumed rate | **penalty, measured rate** |
+|---|---|---|---|---|
+| 0.05 | 0.050 | 0.089 | 41.6 | **23.4** |
+| 0.10 | 0.100 | 0.169 | 37.9 | **22.4** |
+| 0.25 | 0.250 | 0.339 | 30.8 | **22.7** |
+| 0.40 | 0.400 | 0.461 | 26.6 | **23.1** |
+| 0.50 | 0.500 | 0.500 | 22.6 | **22.6** |
+| random | | 0.4997 | | **23.2** |
+
+- **The drift was the model, not the machine.** On biased noise the predictor mispredicts
+  much more than the minority fraction: ~1.7× F at small F. It presumably keeps finding
+  spurious patterns in the global history and following them. With the measured miss rate
+  the penalty is **flat: 22.4–23.6 cycles, median 22.8**.
+- Result: **≈ 23 cycles lost per mispredict.** This is a lower bound on the fetch→execute
+  depth: it measures the refill from the front end to branch resolution, minus any overlap.
+  For context, published Golden Cove figures are ~17 cycles minimum, more when the refill
+  misses the µop cache.
+- Here PMU cycles per branch come from the same counters, so the timing and miss counts are
+  self-consistent. They agree with the TSC timing within a few percent for most patterns
+  (`random` 14.28 vs 14.14; `nottaken` 2.05 vs 2.00). `alt` reads 2.66 (PMU, steady state)
+  vs 3.00 (TSC); this changes the baseline by < 0.4 cycles and the penalty by < 1 cycle.
+- Counters are not visible inside the enclave, so this check is native only. The SGX timing
+  (22.2 cycles at F = 0.5) matches native, so the same miss rates apply.

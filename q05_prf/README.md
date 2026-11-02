@@ -12,6 +12,8 @@ Filler choices:
   (2N/10), so it never becomes the bottleneck.
 - `ymm`: `vpaddd %ymm0, %ymm0, %ymmK` writes ymm1..15. Every instruction is
   independent because ymm0 is never written.
+- Controls (added Nov 1): `int_andn`, `int_shlx`, `int_lea2`, `int_lea`, `int_ind`. These vary
+  flags-writing, chains and immediates (see Results), plus `ymm_hi` (see `ymm_state.sh`).
 - `mix`: alternating `int` / `ymm`. If the two classes share **one** register file, the
   knee stays at ≈ the smaller single-class knee. If they are **separate**, each file
   fills at half the rate and the knee moves to ≈ 2× the int knee, capped by the ROB.
@@ -41,11 +43,17 @@ Code snippet (`int` filler, N = 3):
 ## How to run
 ```bash
 cd q05_prf/bench
-./run.sh native 2           # ~15 s
+./run.sh native 2           # coarse grid, all filler kinds, 11 trials (~1 min)
 ./run.sh sgx 2              # same driver; kernels + data inside an SGX enclave
-python3 ../plots/plot.py    # -> plots/compare/q5_prf.png (or `plot.py <machine>` -> plots/<machine>/) + knees on stdout
+./zoom.sh native 2          # step-1 windows N = 196-280 and 404-460, 21 trials (~2.5 min)
+./zoom.sh sgx 2
+./ymm_state.sh native 2     # ymm vs ymm_hi (ymm16-31 written first), N = 220-280
+./ymm_state.sh sgx 2
+python3 ../plots/plot.py       # -> plots/compare/q5_prf.png + knees on stdout
+python3 ../plots/plot_zoom.py  # -> plots/compare/q5_prf_zoom.png + halfway crossings
 ```
-Run Q4 first if you want the NOP reference line on the plot.
+Run Q4 first if you want the NOP reference line on the plot. Outputs:
+`results/<machine>/{<mode>.csv, zoom/<mode>.csv, ymm_state/<mode>.csv}`.
 
 ## Interpreting results
 - Knee(int) < knee(NOP) → the integer PRF limits the window before the ROB does.
@@ -56,25 +64,49 @@ Run Q4 first if you want the NOP reference line on the plot.
 - Knee(mix) ≈ 2 × knee(int) → integer and vector are **separate register classes**.
 - Native vs SGX: knee positions should match.
 
-## Baseline (artemisia, native, CPU 2, 11 trials)
-| filler | jump between | reading |
-|---|---|---|
-| nop (Q4) | 496 → 504 | ROB |
-| int | 208 → 216 | ~210 free integer registers |
-| ymm | 240 → 248 | ~245 free vector registers |
-| mix | 424 → 432 | ≈ 2× int knee → separate int / vector files |
+## Results (artemisia, Nov 1; coarse step 8 × 11 trials + step-1 zoom × 21 trials, native and SGX)
 
-The published Golden Cove int PRF is 280 entries, but the measured knee is ~210. The gap is
-larger than the 16 architectural GPRs. Open questions to test before writing up:
-1. **Flags:** do `add` (which writes flags) and a flags-free writer such as `lea`
-   or `shlx` give the same knee?
-2. **Rotation width:** try more filler registers.
-3. **Unrelated limits:** check that it isn't the scheduler or another structure by
-   making the filler `int` chains even shorter.
+Each value is the median over trials of the **per-trial halfway crossing** in the step-1 zoom
+(`plots/plot_zoom.py`; the window is N = 196–280, or 404–460 for mix).
 
-Also consider `zmm` filler (AVX-512 is available on this CPU) as a further class check.
+| filler | writes | native | SGX | reading |
+|---|---|---|---|---|
+| nop (Q4) | nothing | 498 | 498 | ROB ≈ 500 |
+| `add r,r` (int) | GPR + flags | **214** | **215** | integer PRF |
+| `andn` (independent) | GPR + flags | 213 | 212 | same: chains don't matter |
+| `shlx` (independent) | GPR only, no imm | 207 | 208 | same: **flags don't matter** |
+| `lea (r,r)` | GPR only, no imm | 213 | 212 | same |
+| `lea 1(r)`, `lea 1(rbp)` | GPR only, **reg+imm** | no PRF knee: runs to the ROB (~496) | same | **allocates no physical register** |
+| `vpaddd ymm` | vector | **244** | **262** | vector PRF (see below) |
+| `ymm_hi` (ymm after writing ymm16–31) | vector | 241 | **244** | explains the SGX difference |
+| mix int / ymm | both, alternating | 426 | 429 | ≈ 2 × int → **separate files** |
 
-**SGX enclave (same machine, 11 trials):** int 208 → 216 and mix 424 → 432, identical to native. ymm 256 → 264, a clean step; natively the ymm transition is ragged across 240–272 (a repeat run gave 460, 593, 494, 677, 794 cycles at N = 240…272). So the two overlap. Run a step-1 sweep over 232–280 in both modes before calling it a difference.
+Conclusions:
+1. **Integer PRF:** ~**210 ± 4** free entries are available to in-flight integer writes. It
+   is the same for flag-writing (`add`, `andn`) and flags-free (`shlx`, `lea r,r`) writers, so
+   flags are not a separate limit here. Free ≠ total: committed architectural state (this
+   thread's 16 GPRs, and on an SMT core the idle sibling's state too) also occupies
+   entries. So total int PRF ≳ 210 + 16. Published: 280. Report the measured free count, and
+   say the total is a lower bound.
+2. **`lea reg+imm` is handled at rename:** with that filler the window is limited only by the
+   ROB. So Golden Cove does not allocate a physical register for a register-plus-small-immediate
+   `lea`, presumably by folding the immediate into the rename mapping. This is also why every
+   other benchmark here uses register-register forms (`add r,r` in the calibration).
+3. **Separate classes:** the mix knee (426–429) is about twice the int knee and well below the
+   ROB. The int and vector writes fill different structures; with one shared file the mix knee
+   would match the int knee.
+4. **Vector PRF and the native-vs-SGX difference:** natively ~244 free vector entries; inside
+   the enclave ~262 (19 of 21 trials each). `ymm_state.sh` shows why. Writing ymm16–31 before
+   the sweep brings the enclave down to **244**, the native value, and changes nothing natively
+   (241 vs 241). In a normal process, glibc's AVX-512 string/memory routines leave ymm16–31
+   in use, and those 16 architectural registers pin physical vector registers. The enclave's
+   trusted libc never touches them. So the difference is architectural state, not an enclave
+   effect on the hardware; a good example of a native-vs-enclave difference that needs care
+   to interpret.
+
+Earlier coarse-grid notes (still valid): the native ymm transition looked ragged across
+240–272. With 21 trials at step 1 it is a clean step at 241–244 in 19 of 21 trials; the
+remaining trials resemble the enclave state.
 
 ## PMU verification (later)
 `resource_stalls.*` / `rat_stalls` style events (event names vary by generation;

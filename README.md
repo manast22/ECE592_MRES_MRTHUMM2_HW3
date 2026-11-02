@@ -150,31 +150,53 @@ for q in q01_pipelined q02_ooo q03_branch q04_rob q05_prf q14_fetch_width q15_pi
 done
 ```
 
-## Baseline Status (artemisia, native vs SGX enclave, CPU 2, 11 trials, Oct 26)
+## Running on Another Machine
 
-| Q | Native | SGX enclave |
-|---|---|---|
-| 1 | Independent add IPC 4.73 vs dependent 1.00; imul 1.00 vs 0.333 → pipelined | identical (4.72; 1.00 vs 0.333) |
-| 2 | 1 miss 361 cyc; 2 dependent 2.00×; 2 indep 1.01×; with consumer 1.04× → out-of-order | 1 miss **415 cyc (+15%)**; 1.94× / 1.04× / 1.08×, same conclusion |
-| 3 | Random 14.1 cyc/branch vs 3.0–3.6 learnable; periods ≤ 4096 learned | identical |
-| 4 | Knee N = 496 → 504 → ROB ≈ 500–506 (published 512) | same knee, higher plateaus |
-| 5 | Knees: int 208–216, ymm 240–248, mix 424–432 → separate int / vector PRFs | int and mix identical; ymm 256–264 (the native transition is ragged over 240–272, so not yet a clear difference) |
-| 14 | ≈ 6 instr/cycle; legacy fetch ≥ 29 B/cycle; L2-fed 12.8 B/cycle | identical |
-| 15 | ≈ 22 cyc per mispredict at F = 0.5; varies with F → needs `branch-misses` check | identical (22.2) |
+```bash
+git clone <repo> && cd ECE592_MRES_MRTHUMM2_HW3
+common/preflight.sh 2        # tools, CPU features, the pin CPU, LLC vs buffer size, SGX, perf
+common/run_all.sh 2          # everything, ~10 min per mode; adds sgx if /dev/sgx_enclave is usable
+```
+- Results go to `q*/results/<hostname>/` (set `MACHINE=name` to override), and machine info
+  to `machines/<hostname>.txt`. Plots in `q*/plots/compare/` overlay all machines;
+  `common/plot_all.sh <machine>` writes one machine's figures to `q*/plots/<machine>/`.
+- Pick a CPU that `taskset -cp $$` allows and whose SMT sibling is idle.
+- Machine-specific parts adapt automatically:
+  - Q4/Q5 step-1 zoom windows come from that machine's own coarse sweep. Override with
+    `ZOOM=lo:hi[,lo:hi] ./zoom.sh ...`.
+  - Q5 controls needing BMI1/BMI2/AVX-512VL are built only where the CPU has them.
+  - `ymm_state.sh` skips on non-AVX-512 CPUs.
+  - PMU checks run only where `perf` counting works.
+- If preflight warns that the LLC is not much smaller than a 128 MiB chain (some AMD EPYC
+  parts), pass a larger `-s` to the Q2/Q4/Q5 runs (and raise `ENCLAVE_HEAP` for SGX).
 
-Observed so far: the enclave changes **memory** cost (encrypted EPC, +15% per miss) but not
-core structures (pipeline, ROB, register files, predictor, front end), as expected. In both
-modes the all-taken / all-not-taken branch patterns flip between ~2.0 and ~3.2 cycles from
-trial to trial, more often in SGX. This doesn't affect the Q3 / Q15 conclusions.
+## Results Status (artemisia, native vs SGX enclave, CPU 2; updated Nov 1)
+
+Coarse sweeps: 11 trials (Oct 26, Q5 re-run Nov 1). Q4/Q5 step-1 zooms: 21 trials (Nov 1).
+PMU checks: native only (Nov 1).
+
+| Q | Native | SGX enclave | PMU check |
+|---|---|---|---|
+| 1 | Independent add IPC 4.73 vs dependent 1.00; imul 1.00 vs 0.333 → pipelined | identical | ✓ IPC 1.001 / 4.72 / 0.331 / 1.023; also validates the TSC→cycle calibration |
+| 2 | 1 miss 361 cyc; 2 dependent 2.00×; 2 indep 1.01×; with consumer 1.04× → out-of-order | 1 miss **415 cyc (+15%)**; 1.94× / 1.04× / 1.08× | – |
+| 3 | Random 14.1 cyc/branch vs 3.0–3.6 learnable; periods ≤ 4096 learned | identical | ✓ miss rate 0.0000 (alt, period:16, taken) vs 0.4997 (random) |
+| 4 | Step-1: full serialization from **N = 498** (ramp 493–497) → **ROB ≈ 500** (published 512) | identical knee (N = 498), higher plateaus | – |
+| 5 | Free int regs **≈ 210** (add/andn/shlx/lea r,r all 207–215: flags irrelevant); `lea reg+imm` allocates no register; mix ≈ 2× int → separate int / vector files; free vector **≈ 244** | int / mix identical; vector **≈ 262**. Explained: writing ymm16–31 first gives 244 in SGX too. glibc leaves ymm16–31 in use natively; the enclave's libc doesn't | – |
+| 14 | ≈ 6 instr/cycle; legacy fetch ≥ 29 B/cycle; L2-fed 12.8 B/cycle | identical | – |
+| 15 | **22.3 cyc per mispredict**, timing only: (t_random − t_alt) / 0.5, exact because a fair coin is mispredicted 50% by any predictor | **22.2** | ✓ 22.4–23.6 using measured miss rates; timing-implied miss rates match the PMU within 0.007 |
+
+Observed: the enclave changes **memory** cost (encrypted EPC, +15% per miss) but not core
+structures. The one structural-looking difference (Q5 vector) is architectural *state*, shown
+by `q05_prf/bench/ymm_state.sh`. In both modes the all-taken / all-not-taken branch patterns
+flip between ~2.0 and ~3.2 cycles per trial (a front-end effect: two taken branches per
+iteration); this doesn't affect any conclusion. Occasional whole-trial slowdowns (~2×) come
+from other users' load on Artemisia; they show only in the min–max bands, not the medians.
 
 ### Still to do
-- **Second machine** (required: two machines per exercise). Run the loop above there; results
-  land in `results/<hostname>/` automatically. Fill in the Machines table.
-- **Step-1 sweeps** (code added, not yet run): `q04_rob/bench/zoom.sh` and `q05_prf/bench/zoom.sh`
-  (`native` and `sgx`), then `plots/plot_zoom.py`. Needs a rebuild of the Q4/Q5 kernels. The new
-  Q5 kinds `int_lea`, `int_ind`, `int_andn` (flags / chain controls) also run in the normal
-  `run.sh`; `make ZMM=1` (delete `kernels.S` first) adds AVX-512 `zmm`.
-- **PMU verification**: `common/pmu_verify.sh` (native; Q3/Q15 miss rates, Q1/Q14 IPC).
+- **Second machine** (required: two machines per exercise). Run all seven `run.sh` (and
+  `zoom.sh` for Q4/Q5) there; results land in `results/<hostname>/` automatically. Fill in the
+  Machines table.
+- Optional: Q14 legacy-fetch ceiling (K ≈ 4608), a repeat Artemisia run at a quieter time.
 - **Report PDF** (`report/OUTLINE.md`), final `AI_LOG.md`, and the ZIP.
 
 ## AI Use Disclosure

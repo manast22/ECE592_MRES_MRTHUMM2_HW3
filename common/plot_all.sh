@@ -4,7 +4,7 @@
 #   machine     -> plots/<machine>/ (that machine only; native + SGX)
 cd "$(dirname "$0")/.." || exit 1
 for d in q*/plots; do
-    for s in "$d"/plot.py "$d"/plot_zoom.py; do
+    for s in "$d"/plot.py "$d"/plot_zoom.py "$d"/plot_pmu.py; do
         [ -f "$s" ] || continue
         echo ">> $s $*"
         python3 "$s" "$@" || echo "   (skipped: $s failed or has no data)"

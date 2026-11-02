@@ -3,6 +3,7 @@
  * Output CSV: variant,trial,ticks,cycles,instrs,cpi,ipc */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "kbackend.h"
@@ -11,13 +12,15 @@ int main(int argc, char **argv)
 {
     int trials = 11;
     uint64_t iters = 20000;   /* x1000 instructions per measurement */
+    const char *only = NULL;   /* -v: run a single variant (used by pmu.sh) */
     int opt;
-    while ((opt = getopt(argc, argv, "t:i:")) != -1) {
+    while ((opt = getopt(argc, argv, "t:i:v:")) != -1) {
         switch (opt) {
         case 't': trials = atoi(optarg); break;
         case 'i': iters = strtoull(optarg, NULL, 0); break;
+        case 'v': only = optarg; break;
         default:
-            fprintf(stderr, "usage: %s [-t trials] [-i iters]\n", argv[0]);
+            fprintf(stderr, "usage: %s [-t trials] [-i iters] [-v variant]\n", argv[0]);
             return 1;
         }
     }
@@ -33,6 +36,8 @@ int main(int argc, char **argv)
 
     for (int t = 0; t < trials; t++) {
         for (uint64_t v = 0; v < nv && v < 8; v++) {
+            if (only && strcmp(only, names[v]))
+                continue;
             kb_run(v, iters / 10);   /* warm up i-cache / predictor */
             uint64_t ticks = kb_run(v, iters);
             double cyc = ticks * c.cyc_per_tick;

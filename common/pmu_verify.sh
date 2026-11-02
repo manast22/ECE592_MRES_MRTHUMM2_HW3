@@ -22,16 +22,12 @@ perf_run() {   # perf_run QDIR OUTNAME BINARY ARGS...
     echo "== $q $name" >&2; cat "$outdir/$name.txt" >&2
 }
 
-# Q3: miss rate should be ~0% for the learnable patterns and ~50% for random.
-for p in taken alt period:16 period:4096 random; do
-    perf_run q03_branch "q3_${p//:/_}" q3_bench -p "$p" -t 3
-done
-# Q15: measured miss rate for each bias F replaces the assumed min(F,1-F).
-for f in 0.05 0.25 0.50; do
-    perf_run q15_pipeline_depth "q15_bias_$f" q15_bench -p "bias:$f" -t 3
-done
-# Q1 / Q14: cycles + instructions give IPC directly.
-perf_run q01_pipelined q1_all q1_bench -t 3
+# Q3 + Q15: per-pattern branch-miss rate and PMU cycles/branch, difference
+# method (8 minus 4 timed passes) -> q15_pipeline_depth/results/$M/pmu/native.csv
+"$REPO_DIR/q15_pipeline_depth/bench/pmu.sh" "$CPU"
+# Q1: per-variant IPC, difference method -> q01_pipelined/results/$M/pmu/native.csv
+"$REPO_DIR/q01_pipelined/bench/pmu.sh" "$CPU"
+# Q14: whole-process cycles + instructions (aggregate IPC only).
 perf_run q14_fetch_width q14_all q14_bench -t 3
 
 echo "Q4/Q5: find the ROB / register-file stall events for this CPU with" >&2

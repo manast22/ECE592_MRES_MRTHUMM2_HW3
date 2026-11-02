@@ -61,5 +61,19 @@ spec, not measured here).
 
 **SGX enclave (same machine, 11 trials):** identical. add_indep 4.72, add_dep 1.00, imul_dep 0.333, imul_indep 1.00. Pipelining is a core property; the enclave doesn't touch it.
 
-## PMU verification (later)
-`perf stat -e cycles,instructions` on `q1_bench` should reproduce the same IPC.
+## PMU verification (done Nov 1, native, CPU 6)
+`bench/pmu.sh` counts `cycles:u` and `instructions:u` for one variant at a time (`q1_bench -v`)
+and subtracts a run with half the work (`-i 40000` minus `-i 20000`). Calibration, setup and
+warm-up cancel out. Results are in `results/<machine>/pmu/native.csv`.
+
+| variant | IPC (TSC timing) | IPC (PMU) |
+|---|---|---|
+| add_dep | 1.000 | 1.001 |
+| add_indep | 4.73 | 4.72 |
+| imul_dep | 0.333 | 0.331 |
+| imul_indep | 1.000 | 1.023 |
+
+The PMU instruction count includes the loop's `dec/jnz` (1002 per 1000-instruction block,
++0.2%). The agreement also independently validates the TSC→cycle calibration, which is
+otherwise circular (`add_dep` = 1 by construction): the PMU counts real core cycles and gets
+1.001 for the same chain.
