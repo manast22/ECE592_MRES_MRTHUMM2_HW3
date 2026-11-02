@@ -6,7 +6,10 @@ setup and warm-up cancel. Two estimates of the mispredict penalty:
     assumed:  (c(F) - base(F)) / min(F, 1-F)       (what plot.py does from timing)
     measured: (c(F) - base(F)) / miss_rate(F)       (miss rate from branch-misses:u)
 with c(F) = PMU cycles per data branch and base(F) interpolated between the
-perfectly predicted `nottaken` (F=0) and `alt` (F=0.5) runs.
+perfectly predicted `nottaken` (F=0) and `alt` (F=0.5) runs. That base(F) is too
+high at small F where `alt` costs more than the other no-miss patterns (crux), so
+those per-F values read low. A straight-line fit of c(F) against the measured miss
+rate needs no baseline: its slope is the penalty.
 """
 import os
 import sys
@@ -45,6 +48,8 @@ for i, (label, d) in enumerate(data.items()):
     pr = (c["random"] - c_alt) / m["random"]
     print(f"   random: penalty(measured) {pr:.1f}")
     print(f"   penalty(measured) over F: median {np.median(pm):.1f}, range {min(pm):.1f}-{max(pm):.1f} cycles")
+    slope, intercept = np.polyfit(meas, [c[f"bias:{f:.2f}"] for f in fs], 1)
+    print(f"   fit c(F) vs miss rate: slope {slope:.1f} cycles per mispredict, intercept {intercept:.2f}")
 
     ax1.plot(fs, [min(f, 1 - f) for f in fs], color="#8a8984", linestyle="--", linewidth=1.2,
              label="assumed: min(F, 1−F)")

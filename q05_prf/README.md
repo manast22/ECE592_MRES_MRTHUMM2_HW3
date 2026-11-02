@@ -62,8 +62,14 @@ Run Q4 first if you want the NOP reference line on the plot. Outputs:
   free + architectural state held by committed values (16 GPRs plus internal and
   flag-related registers). Report it as a lower bound.
 - Knee(ymm) gives the same for the vector PRF.
-- Knee(mix) ≈ 2 × knee(int) → integer and vector are **separate register classes**.
+- Knee(mix) ≈ 2 × knee(int) → integer and vector are **separate register classes**. Where
+  2 × knee(int) is beyond the ROB (crux: 2 × 145 vs. 224), the ROB should cap it first, so
+  the test is simply knee(mix) well above both single-class knees.
 - Native vs SGX: knee positions should match.
+
+Crux (native, no AVX-512, no SGX yet): int family 138–145, ymm 148, mix 208. `int_lea` and
+`int_ind` hit the same limit as `add`, unlike artemisia. **Open:** mix at 208 is about 15
+short of the ROB knee (223), with no explanation yet; separate classes still hold.
 
 ## Results (artemisia, Nov 1; coarse step 8 × 11 trials + step-1 zoom × 21 trials, native and SGX)
 

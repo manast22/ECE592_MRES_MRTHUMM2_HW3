@@ -29,6 +29,8 @@ perf_run() {   # perf_run QDIR OUTNAME BINARY ARGS...
 "$REPO_DIR/q01_pipelined/bench/pmu.sh" "$CPU"
 # Q14: whole-process cycles + instructions (aggregate IPC only).
 perf_run q14_fetch_width q14_all q14_bench -t 3
+# Timing vs. counters for Q1, Q3 and Q15 -> report/pmu_tables.md
+python3 "$REPO_DIR/common/pmu_tables.py"
 
 echo "Q4/Q5: find the ROB / register-file stall events for this CPU with" >&2
 echo "  perf list | grep -iE 'resource_stalls|rob|stall'" >&2

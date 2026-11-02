@@ -1,0 +1,87 @@
+== date
+2026-11-01T21:15:40-05:00
+== uname
+Linux crux.ece.ncsu.edu 6.8.0-88-generic #89-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 11 01:02:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+== lscpu
+Architecture:                         x86_64
+CPU op-mode(s):                       32-bit, 64-bit
+Address sizes:                        39 bits physical, 48 bits virtual
+Byte Order:                           Little Endian
+CPU(s):                               8
+On-line CPU(s) list:                  0-7
+Vendor ID:                            GenuineIntel
+Model name:                           Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz
+CPU family:                           6
+Model:                                158
+Thread(s) per core:                   1
+Core(s) per socket:                   8
+Socket(s):                            1
+Stepping:                             13
+CPU(s) scaling MHz:                   89%
+CPU max MHz:                          4700.0000
+CPU min MHz:                          800.0000
+BogoMIPS:                             6000.00
+Flags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp vnmi md_clear flush_l1d arch_capabilities ibpb_exit_to_user
+Virtualization:                       VT-x
+L1d cache:                            256 KiB (8 instances)
+L1i cache:                            256 KiB (8 instances)
+L2 cache:                             2 MiB (8 instances)
+L3 cache:                             12 MiB (1 instance)
+NUMA node(s):                         1
+NUMA node0 CPU(s):                    0-7
+Vulnerability Gather data sampling:   Mitigation; Microcode
+Vulnerability Itlb multihit:          KVM: Mitigation: VMX disabled
+Vulnerability L1tf:                   Not affected
+Vulnerability Mds:                    Not affected
+Vulnerability Meltdown:               Not affected
+Vulnerability Mmio stale data:        Mitigation; Clear CPU buffers; SMT disabled
+Vulnerability Reg file data sampling: Not affected
+Vulnerability Retbleed:               Mitigation; Enhanced IBRS
+Vulnerability Spec rstack overflow:   Not affected
+Vulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop
+Vulnerability Srbds:                  Mitigation; Microcode
+Vulnerability Tsx async abort:        Mitigation; TSX disabled
+Vulnerability Vmscape:                Mitigation; IBPB before exit to userspace
+== cpuinfo (cpu 0)
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz
+stepping	: 13
+microcode	: 0x104
+cpu MHz		: 4208.887
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 8
+core id		: 0
+cpu cores	: 8
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp vnmi md_clear flush_l1d arch_capabilities ibpb_exit_to_user
+vmx flags	: vnmi preemption_timer invvpid ept_x_only ept_ad ept_1gb flexpriority tsc_offset vtpr mtf vapic ept vpid unrestricted_guest ple shadow_vmcs pml ept_mode_based_exec
+bugs		: spectre_v1 spectre_v2 spec_store_bypass swapgs taa itlb_multihit srbds mmio_stale_data retbleed eibrs_pbrsb gds bhi vmscape
+bogomips	: 6000.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+== sgx devices
+ls: cannot access '/dev/sgx*': No such file or directory
+== sgx dmesg
+(dmesg unavailable)
+== perf_event_paranoid
+4
+== gramine
+/home/mrthumm2/ECE592_MRES_MRTHUMM2_HW3/common/sysinfo.sh: line 15: gramine-sgx: command not found
+(none)
+== gcc
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+== groups
+tss ECE-Users ECE-EBII 1008.Users ECE-EBII 2116.Users ECE-Teaching Labs Users ECE-Research Users COE-Users NCSU-Unity Users COEDEAN-Users NCSU-M-Unity Users COEDEAN-Public Labs.Users WT-COEDEAN-All COE users MSE-Users MSE-Research Labs.Users OIT-Users WT-CSC-ALL CSC COURSES TEX-Conference Rooms.Users OIT-Apps-RO COEDEAN-Private Labs.Users COEDEAN-Private Labs-Academic Affairs.Users OIT-TrainingLabs-RO courses-csc-453-readonly OIT-Printer-hlb-317-color1 WT-CSC-Electrical and Computer Engineering - Students COEDEAN-Presentation Rooms.Users CSC-Mediasite-Students MSE-Add User to Remote Desktop Users Group TEX-Teaching Labs-Tutoring Center.Users TEX-Student Labs-Student Lounge.Users TEX-Lecterns.Users TEX-Student Labs.Users TEX-Loaners.Users COEDEAN-Conference Rooms.Users IES-Conference Rooms.Users CSC-Mediasite-ALL WT-CSC-All OITMD-GRDSCH-Share-Public-Presentation Share-RW MSE-JLJServer.User OITLAB-Unity Labs.Users OITCT-Conference.Users OITLAB-Users OITLAB-Teaching Labs.Users OITCT-Users OITLAB-Test.Users OITLAB-Unity Labs.HLB 106.Users OITLAB-Teaching Labs.AFTC 110.Users OITLAB-Test.Print Test.Users OITLAB-Dept Labs.Users OITLAB-Dept Labs.PARKSCH PH 211.Users WT-NCSU-Students-Graduate NCSU-PSO-Unity Accounts OIT-VPN-Students MSE-Classroom.Users TEX-Teaching Labs-Scale Up.Users ECE-AppLocker Deny-Users OIT-VPN-Students-Graduate OIT-M365-Students-Graduate ECE-acl-dk_spec_2006_2017-rd ECE-PC-hunter.Admins ECE-PC-hunter.Users CH-Empower.Users COEDEAN-WVD.Users MSE-Labs-EB1-B14.Users CCEE-Research Labs.FWH 1115.Users ECE-acl-course_ece720_common-rd ECE-acl-course_ece546_common-rd PY-Elting Lab.Users PERSONA-ECE.ece-students OIT-RS-Researcher-smirbag PERSONA-TEXTILES.all-users WT-COS-All People ECE-acl-dk_cadence-rd ECE-acl-dk_riscv_toolchains-rd ECE-acl-dk_ncsu-rd ECE-acl-course_ece310_common-rd PERSONA-ITECS-EOL-CLASSES.eol-006171-student PERSONA-ITECS-EOL-CLASSES.eol-004665-student PERSONA-ITECS-EOL-CLASSES.eol-031731-student ECE-smirbag.Administrators ECE-smirbag.Users PERSONA-ECE-IT.eddie-app PERSONA-COE-APPSTREAM-ACCESS.coe-course-students PERSONA-COE-APPSTREAM-ACCESS.all-appstream COEDEAN-Presentation Rooms-CCC.Users OIT-HPC-Cluster-Users PERSONA-NCSU.all-people-export ECE-PC-artemisia.Admins ECE-PC-artemisia.Users ECE-PC-greenforest.Admins ECE-PC-seasidehill.Admins ECE-PC-greenforest.Users ECE-PC-seasidehill.Users WT-ISE-ALL-COE PERSONA-SSOT.ot-students PERSONA-GITHUB-CLOUD.eligible-users ECE-PC-charnwood.Admins ECE-PC-charnwood.Users ECE-acl-dk_sky130-rd ECE-acl-dk_cbp2025-rd PERSONA-GOOGLE.google-licensing-combined-stu PERSONA-BROADCASTER.students PERSONA-ITECS-EOL-CLASSES.eol-006171-118-student ECE-acl-dk_gf180MCU-rd ECE-PC-ookay.Admins ECE-PC-ookay.Users ECE-PC-upgrade.Admins ECE-PC-upgrade.Users ECE-PC-crux.Admins ECE-PC-crux.Users PERSONA-ECE.ece592-118 ECE-PC-sunbird.Admins ECE-PC-sunbird.Users ECE-PC-thunderbird.Admins ECE-PC-thunderbird.Users ECE-PC-skylark.Admins ECE-PC-skylark.Users ECE-PC-sunbird.Basic OIT-Licensure-A3-Student-l-r PERSONA-ITECS-EOL-CLASSES.eol-004665-001-student PERSONA-ITECS-EOL-CLASSES.eol-031731-001-student PERSONA-ECE-MAKERSPACE.safety OIT-All Unity Accounts ECE-PC-gravedigger.Admins ECE-PC-gravedigger.Users ECE-acl-dk_ihpopen-rd ECE-PC-sorrow.Admins ECE-PC-sorrow.Users ECE-PC-ece-dev-001.Admins ECE-PC-descent.Admins ECE-PC-descent.Users ECE-PC-elevation.Admins ECE-PC-incursion.Admins ECE-PC-slumberjack.Admins ECE-PC-littleriver.Admins ECE-PC-smithriver.Admins ECE-PC-trentriver.Admins ECE-PC-wildcat.Admins ECE-PC-charlotte.Admins ECE-PC-monkey.Admins PERSONA-ITECS-EOL-CLASSES.eol-033738-student PERSONA-ITECS-EOL-CLASSES.eol-033738-001-student

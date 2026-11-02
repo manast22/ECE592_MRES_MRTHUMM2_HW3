@@ -22,9 +22,9 @@ the baseline, the penalty is exact:
 ```
 P = (t(bias:0.50) − t_alt) / 0.5
 ```
-`alt` (1010…) has the same 50/50 path mix and is perfectly predicted; it sits on the same
-minimum cost as `period:4/16`. `period:16` is printed as an alternative baseline to show
-the result's sensitivity to the choice.
+`alt` (1010…) has the same 50/50 path mix and is perfectly predicted. On artemisia it sits
+on the same minimum cost as `period:4/16`; on crux it costs more (5.04 vs. 4.41). `period:16`
+is printed as an alternative baseline to show the result's sensitivity to the choice.
 
 **Biased coins (F < 0.5) only bound the miss rate from below.** The best possible predictor
 mispredicts min(F, 1−F), and a real one can only do worse. So
@@ -44,8 +44,8 @@ F = 0.5 point is right.
 This reuses the Q3 kernel and driver. `bench/Makefile` builds `q15_bench` from
 `q03_branch/bench/` sources; only the pattern list differs. `run.sh` measures the
 predictable baselines (`taken`, `nottaken`, `alt`, `period:16`) and i.i.d. patterns with taken
-probability F = 0.00 … 0.50 (`bias:F`). `plots/plot.py` implements the method above. If
-`results/<machine>/pmu/native.csv` exists, it overlays the PMU-measured miss rates.
+probability F = 0.00 … 0.50 (`bias:F`). `plots/plot.py` implements the method above from
+timing results only. PMU validation is separate: `plots/plot_pmu.py` and `report/pmu_tables.md`.
 
 ## How to run
 ```bash
@@ -115,3 +115,15 @@ exactly 3 × 4 × 1 MiB = 12.6 M data branches cancels. `plots/plot_pmu.py` →
   vs 3.00 (TSC); this changes the baseline by < 0.4 cycles and the penalty by < 1 cycle.
 - Counters are not visible inside the enclave, so this check is native only. The SGX timing
   (22.2 cycles at F = 0.5) matches native, so the same miss rates apply.
+
+## Crux (i7-9700, native, 11 trials)
+Timing result: **19.4 cycles** (`alt` baseline), 20.6 (`period:16`).
+
+PMU validation (`report/pmu_tables.md`): the method's assumptions hold, with `random` missing
+at 0.4999 and `alt` at 0.00001. So crux's dearer `alt` is not mispredicts, and the baseline is
+the only uncertainty. PMU estimates span 18.5–21.6 cycles, the top being the slope of cycles
+against measured miss rate. Timing-implied miss rates are within 0.022 of the PMU.
+
+`plot_pmu.py`'s per-F values fall as low as 10.7 at small F. Its base(F) rises toward `alt`, which
+is too high here, so don't quote those; artemisia's flat 22–24 doesn't show this because its
+`alt` is cheaper. On the same PMU estimates artemisia spans 22.5–24.7, so crux is shorter.

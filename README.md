@@ -55,7 +55,7 @@ Same setup as Q4, but the filler writes registers (e.g. `add rax, rbx`). Avoid z
 ### PMU policy
 
 - **Initial measurements do not use the PMU.** All conclusions are drawn from `rdtsc` timing alone (calibrated as above), so the method also works inside an enclave and on machines where `perf` is blocked.
-- **PMU counters are used afterwards, only as verification.** Once a result is derived from timing, check it against counters (e.g. `branch-misses` for Q3/Q15, `cycles`/`instructions` for IPC in Q1/Q14, the resource-stall events for Q4/Q5) where `perf` is permitted. Report agreement or disagreement separately from the timing-derived findings, and note machines where counters are unavailable.
+- **PMU counters are used afterwards, only as verification.** Once a result is derived from timing, check it against counters (e.g. `branch-misses` for Q3/Q15, `cycles`/`instructions` for IPC in Q1/Q14, the resource-stall events for Q4/Q5) where `perf` is permitted. Report agreement or disagreement separately from the timing-derived findings, and note machines where counters are unavailable. Timing plots read no PMU data; `common/pmu_verify.sh` runs after them and writes the comparison tables to `report/pmu_tables.md`.
 
 ## Enclave Plan (main risk — start early)
 
@@ -71,7 +71,7 @@ Two course machines with different microarchitectures (e.g. Skylake vs. Ice Lake
 | Machine | CPU model | Microarchitecture | SGX? | Notes |
 |---------|-----------|-------------------|------|-------|
 | Artemisia | Intel Xeon Gold 5420+ | Sapphire Rapids (Golden Cove cores; `lscpu` family 6, model 143, stepping 8) | **Yes (as of Oct 26 re-check)** — `sgx`, `sgx_lc` flags; `/dev/sgx_enclave`, `/dev/sgx_provision`, `/dev/sgx_vepc` present; two EPC sections in `dmesg` | See below |
-| B       | TBD       | TBD               | TBD  |       |
+| Crux | Intel Core i7-9700 | Coffee Lake Refresh (`lscpu` family 6, model 158, stepping 13) | **In the CPU, off in firmware** — CPUID leaf 7 reports SGX and launch control, but leaf 0x12 is empty, with no `sgx` flag or `/dev/sgx*` | See below |
 
 ### Artemisia details
 
@@ -86,6 +86,14 @@ Two course machines with different microarchitectures (e.g. Skylake vs. Ice Lake
 - **Gramine tooling (not used):** the Gramine Python package `graminelibos` is not installed, and the system Python 3.9 also lacks `click`, `tomli`, `tomli_w` and `voluptuous`. As a result `gramine-manifest`, `gramine-sgx-sign` and `gramine-sgx-gen-private-key` all fail, so Gramine cannot build manifests. The enclave runs use the Intel SGX SDK instead, so this no longer blocks anything.
 - Artemisia is now the SGX-capable machine, so it supplies the native-vs-enclave comparison; the second machine only needs to differ in microarchitecture.
 - Full `lscpu` and `/proc/cpuinfo` output is saved automatically in `machines/artemisia.txt` on the first benchmark run.
+
+### Crux details
+
+- Dell OptiPlex 5070, 1 socket × 8 cores, **no SMT**. 12 MiB L3. Max 4700 MHz; the clock measured ~4.68 GHz, dropping to ~4.48 GHz at times (consistent with turbo bins as other cores wake).
+- Ubuntu 24.04.5, kernel 6.8.0-88, GCC 13.3.0, Python 3.12.3. No AVX-512, so the Q5 `ymm_state` test does not apply.
+- **SGX:** the kernel is built with `CONFIG_X86_SGX`, so enabling needs firmware plus a reboot of this shared machine, then the SDK in `/opt/intel/sgxsdk` (not installed) and `sgx` group membership.
+- **PMU:** `perf_event_paranoid` defaults to 4, which blocks counting. It was set to 2 with sudo for the validation run only.
+- Full details are in `machines/crux.txt`.
 
 ## Repository Layout
 
@@ -102,6 +110,7 @@ common/                  shared harness
   chase/                 pointer-chase generator + driver shared by Q2/Q4/Q5
   plotlib.py, knee.py    plot helpers
   pmu_verify.sh          perf-counter cross-check of the timing results (native only)
+  pmu_tables.py          timing vs. PMU tables -> report/pmu_tables.md
 q01_pipelined/           Q1   (each experiment: README.md, bench/, results/<machine>/, plots/)
 q02_ooo/                 Q2
 q03_branch/              Q3
@@ -192,10 +201,28 @@ flip between ~2.0 and ~3.2 cycles per trial (a front-end effect: two taken branc
 iteration); this doesn't affect any conclusion. Occasional whole-trial slowdowns (~2×) come
 from other users' load on Artemisia; they show only in the min–max bands, not the medians.
 
+## Results Status (crux, native, CPU 2; updated Nov 1)
+
+Coarse sweeps: 11 trials. Q4/Q5 step-1 zooms: 21 trials. SGX: not run (off in firmware).
+Conclusions come from timing; the PMU column is validation run afterwards (`report/pmu_tables.md`).
+
+| Q | Native (timing) | PMU check |
+|---|---|---|
+| 1 | Independent add IPC 3.99 vs dependent 1.00; imul 1.00 vs 0.333 → pipelined | ✓ IPC 1.001 / 4.03 / 0.334 / 1.004 |
+| 2 | 1 miss 360 cyc; 2 dependent 1.96×; 2 indep 1.01×; with consumer 1.02× → out-of-order | – |
+| 3 | Random 14.4 cyc/branch vs 3.6–5.2 learnable; degrades from period 256, random-level by 4096 | ✓ miss rate ≤ 0.00001 (taken, not-taken, alt, period:16) vs 0.4999 (random) |
+| 4 | Step-1: half-way crossing **N = 223** → **ROB ≈ 224** (published 224) | – |
+| 5 | Free int regs **≈ 143–145** (add/andn/shlx; lea forms 138–142); vector **≈ 148**; mix 208 → separate int / vector files | – |
+| 14 | 4 instr/cycle; legacy fetch 16 B/cycle | – |
+| 15 | **19.4 cyc per mispredict** (`alt` baseline), 20.6 (`period:16`) | ✓ assumptions hold; PMU estimates 18.5–21.6 |
+
+Open on crux: Q3's no-miss patterns cost 3.5–5.0 cycles with no mispredicts, likely front-end
+(cause not measured). Q5's mix knee (208) sits below the ROB knee (223), unexplained. The Q5
+knees sit below published PRF sizes.
+
 ### Still to do
-- **Second machine** (required: two machines per exercise). Run all seven `run.sh` (and
-  `zoom.sh` for Q4/Q5) there; results land in `results/<hostname>/` automatically. Fill in the
-  Machines table.
+- **SGX on crux** (optional, Artemisia already gives the enclave comparison): enable in firmware,
+  install the SDK, join the `sgx` group, then `common/run_all.sh 2 sgx`.
 - Optional: Q14 legacy-fetch ceiling (K ≈ 4608), a repeat Artemisia run at a quieter time.
 - **Report PDF** (`report/OUTLINE.md`), final `AI_LOG.md`, and the ZIP.
 

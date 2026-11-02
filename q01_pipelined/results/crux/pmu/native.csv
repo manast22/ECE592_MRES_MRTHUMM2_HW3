@@ -1,0 +1,6 @@
+# host crux mode native cpu 2 date 2026-11-01T21:27:06-05:00 method=diff(-i 40000 minus -i 20000) trials=3
+variant,d_cycles,d_instructions,pmu_ipc
+add_dep,66054342,66131885,1.0012
+add_indep,16415067,66132292,4.0288
+imul_dep,197943757,66132572,0.3341
+imul_indep,65901473,66131992,1.0035

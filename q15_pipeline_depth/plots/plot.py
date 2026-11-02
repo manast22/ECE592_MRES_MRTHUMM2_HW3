@@ -19,10 +19,9 @@ Those two flip between ~2.0 and ~3.2 cycles per trial (a front-end effect, not
 prediction), which makes base(F) uncertain by a few tenths of a cycle at small F.
 The headline P uses only `alt` and the fair coin, so it is unaffected.
 
-If results/<machine>/pmu/native.csv exists (../bench/pmu.sh), the measured
-branch-miss rates are overlaid as an independent check.
+This script reads timing results only. PMU validation is separate: plot_pmu.py
+and common/pmu_tables.py.
 """
-import csv
 import os
 import sys
 
@@ -33,23 +32,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from plotlib import COLORS, MARKERS, aggregate, load_results, style, plot_dir
 
-RESULTS = os.path.join(HERE, "..", "results")
-data = load_results(RESULTS)
+data = load_results(os.path.join(HERE, "..", "results"))
 if not data:
     sys.exit("no results yet: run ../bench/run.sh first")
 
-
-def pmu_rates(machine):
-    path = os.path.join(RESULTS, machine, "pmu", "native.csv")
-    if not os.path.exists(path):
-        return {}
-    with open(path) as f:
-        rows = csv.DictReader(l for l in f if not l.startswith("#"))
-        return {r["pattern"]: float(r["miss_rate"]) for r in rows}
-
-
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.2))
-pmu_drawn = set()
 for i, (label, d) in enumerate(data.items()):
     agg = aggregate(d["rows"], ["pattern"], "cyc_per_branch")
     t = {k[0]: v[0] for k, v in agg.items()}
@@ -58,30 +45,20 @@ for i, (label, d) in enumerate(data.items()):
     P16 = (t["bias:0.50"] - t["period:16"]) / 0.5
     fs = sorted(float(p[5:]) for p in t if p.startswith("bias:") and 0 < float(p[5:]) <= 0.5)
 
-    machine = label.rsplit("_", 1)[0]
-    pmu = pmu_rates(machine)
     print(f"== {label}: PENALTY = (t_random {t['bias:0.50']:.3f} - t_alt {t_alt:.3f}) / 0.5 = {P:.1f} cycles"
           f"  (period:16 baseline: {P16:.1f})")
-    print("   F     t(F)   base   upper-bound P   implied miss rate" + ("   PMU miss rate" if pmu else ""))
+    print("   F     t(F)   base   upper-bound P   implied miss rate")
     implied = []
     for f in fs:
         tf = t[f"bias:{f:.2f}"]
         base = t_one + 2 * f * (t_alt - t_one)
         implied.append((tf - base) / P)
-        line = f"   {f:4.2f}  {tf:6.2f} {base:6.2f}   {(tf - base) / f:10.1f}   {implied[-1]:14.3f}"
-        if f"bias:{f:.2f}" in pmu:
-            line += f"   {pmu[f'bias:{f:.2f}']:12.3f}"
-        print(line)
+        print(f"   {f:4.2f}  {tf:6.2f} {base:6.2f}   {(tf - base) / f:10.1f}   {implied[-1]:14.3f}")
 
     ax1.plot(fs, [t[f"bias:{f:.2f}"] for f in fs], color=COLORS[i], linewidth=2,
              marker=MARKERS[i], markersize=5, label=f"{label}  (P = {P:.1f} cycles)")
     ax2.plot(fs, implied, color=COLORS[i], linewidth=2, marker=MARKERS[i], markersize=5,
              label=f"{label}, from timing")
-    if pmu and machine not in pmu_drawn:
-        pf = [f for f in fs if f"bias:{f:.2f}" in pmu]
-        ax2.plot(pf, [pmu[f"bias:{f:.2f}"] for f in pf], linestyle="none", marker="x", markersize=8,
-                 color="#0b0b0b", label=f"{machine}, PMU branch-misses (native)")
-        pmu_drawn.add(machine)
 
 ax2.plot([0, 0.5], [0, 0.5], color="#8a8984", linestyle="--", linewidth=1.2,
          label="best possible predictor: min(F, 1−F)")

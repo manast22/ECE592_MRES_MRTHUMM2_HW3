@@ -18,7 +18,8 @@ machine_name() { echo "${MACHINE:-$(hostname -s)}"; }
 # Print the SMT sibling of $1 and how busy it was over 0.5 s.
 sibling_check() {
     local cpu=$1 sib a b
-    sib=$(tr ',-' '\n\n' < "/sys/devices/system/cpu/cpu$cpu/topology/thread_siblings_list" | grep -vx "$cpu" | head -1)
+    # No SMT sibling (e.g. i7-9700): grep matches nothing, which must not trip set -e/pipefail
+    sib=$(tr ',-' '\n\n' < "/sys/devices/system/cpu/cpu$cpu/topology/thread_siblings_list" | grep -vx "$cpu" | head -1) || true
     [ -z "$sib" ] && return
     a=($(grep "^cpu$sib " /proc/stat)); sleep 0.5; b=($(grep "^cpu$sib " /proc/stat))
     local idle=$(( (b[4]+b[5]) - (a[4]+a[5]) )) tot=0 i
