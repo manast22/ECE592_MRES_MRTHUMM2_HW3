@@ -31,7 +31,7 @@ Q5 PRF (int / ymm / mix + lea / andn controls; zmm if AVX-512).
 - Q15 F-dependence of the implied penalty, and crux's no-miss patterns costing 3.5–5.0 cycles.
 - Trial-to-trial bimodality (taken/not-taken 2.0 vs 3.2 cycles; ragged ymm knee).
 - Crux: no SMT made the first run crash (harness bug); turbo bins move the clock ~4.48–4.68 GHz;
-  SGX present in the CPU but off in firmware, with no access to enable it.
+  SGX1 enclave adaptations (shared TSC timer, 40 MiB chains, native and SGX on different kernels).
 - Enclave: ECALL cost kept out of timing, perf blocked in enclave, heap size limits.
 - Skipped questions and why (TLB/BTB/SMT, see README).
 

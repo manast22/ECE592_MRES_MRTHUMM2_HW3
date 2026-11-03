@@ -12,9 +12,26 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef IN_ENCLAVE
+/* rdtsc faults inside an SGX1 enclave. There the host publishes the TSC from a
+ * thread on another core (sgx/kb_sgx.c) and this points at it; NULL on SGX2. */
+extern const volatile uint64_t *bench_shared_tsc;
+
+static inline uint64_t tsc_shared_read(void)
+{
+    uint64_t t;
+    __asm__ volatile("lfence\n\tmov %1, %0\n\tlfence" : "=r"(t) : "m"(*bench_shared_tsc) : "memory");
+    return t;
+}
+#endif
+
 /* Serialized TSC reads: lfence keeps earlier/later work from leaking across. */
 static inline uint64_t tsc_start(void)
 {
+#ifdef IN_ENCLAVE
+    if (bench_shared_tsc)
+        return tsc_shared_read();
+#endif
     uint32_t lo, hi;
     __asm__ volatile("lfence\n\trdtsc\n\tlfence" : "=a"(lo), "=d"(hi) :: "memory");
     return ((uint64_t)hi << 32) | lo;
@@ -22,6 +39,10 @@ static inline uint64_t tsc_start(void)
 
 static inline uint64_t tsc_stop(void)
 {
+#ifdef IN_ENCLAVE
+    if (bench_shared_tsc)
+        return tsc_shared_read();
+#endif
     uint32_t lo, hi;
     __asm__ volatile("rdtscp\n\tlfence" : "=a"(lo), "=d"(hi) :: "rcx", "memory");
     return ((uint64_t)hi << 32) | lo;

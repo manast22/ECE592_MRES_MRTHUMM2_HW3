@@ -43,6 +43,20 @@ code in both modes. Only the backend linked into it changes.
 - Interrupts during a measurement cause an AEX (asynchronous enclave exit) and re-entry,
   which costs more than a native interrupt. This adds occasional outliers; medians absorb them.
 
+## SGX1 machines (Crux: SGX1 only, 93 MiB EPC, SDK 2.30)
+- **Timer:** `rdtsc` faults in an SGX1 enclave (`sgx_status 0x1006`, enclave crashed).
+  `kb_init` reads CPUID.12H.0:EAX[1]; without SGX2 it starts a host thread that keeps writing the
+  TSC to shared memory and tells the enclave where (`ecall_set_shared_tsc`). `tsc_start`/`tsc_stop`
+  then read that value. The enclave doesn't exit while timing. The thread runs on the highest CPU
+  that isn't the benchmark's (or `SGX_TIMER_CPU`), so a second core stays active. The CSV header
+  records it as `# timer shared-tsc`. On a CPU reporting SGX2, the timing path is unchanged. This
+  was built and run on Crux only, not re-tested on Artemisia.
+- **Memory:** the default 128 MiB chains would page, so `common/run_sgx1.sh [cpu] [MiB per chain]`
+  uses smaller chains and sets `ENCLAVE_HEAP`. Crux uses 40 MiB, the largest size that fits.
+- **Runtime:** the SDK's `libsgx_urts.so` is a stub ("Please use the correct uRTS library from
+  PSW package"). Install the PSW, or unpack `libsgx-urts` and `libsgx-enclave-common` from Intel's
+  local repo archive and put them on `LD_LIBRARY_PATH`.
+
 ## Requirements
 The login session must be in the `sgx` group (`/dev/sgx_enclave` is `root:sgx` 0660).
 `run.sh sgx` checks this and explains what to do if access is missing.

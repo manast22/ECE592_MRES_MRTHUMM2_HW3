@@ -59,8 +59,8 @@ Same setup as Q4, but the filler writes registers (e.g. `add rax, rbx`). Avoid z
 
 ## Enclave Plan (main risk — start early)
 
-- **Implemented with the Intel SGX SDK** (2.23, hardware **debug** enclave, SGX1-style static heap with no EDMM), not Gramine. Each experiment's timed part (kernels, timing, test data) runs inside the enclave, and the host does setup and output. See `common/sgx/README.md`.
-- `rdtsc` turned out to work natively inside the enclave on Artemisia (`common/sgx/timer_probe`), so timing is done in-enclave and the ~16k-cycle ECALL cost is never part of a measurement. Perf counters are generally hidden from enclaves, which is consistent with the PMU-only-for-verification policy.
+- **Implemented with the Intel SGX SDK** (2.23 on Artemisia, 2.30 on Crux, hardware **debug** enclave, SGX1-style static heap with no EDMM), not Gramine. Each experiment's timed part (kernels, timing, test data) runs inside the enclave, and the host does setup and output. See `common/sgx/README.md`.
+- `rdtsc` turned out to work natively inside the enclave on Artemisia (`common/sgx/timer_probe`), so timing is done in-enclave and the ~16k-cycle ECALL cost is never part of a measurement. On Crux (SGX1) `rdtsc` faults in an enclave, so the enclave reads a TSC value that a host thread publishes (`common/sgx/README.md`). Perf counters are generally hidden from enclaves, which is consistent with the PMU-only-for-verification policy.
 - Q2/Q4/Q5 buffer must exceed the LLC yet fit in usable EPC. Encrypted-memory misses cost more, so absolute times should grow while the knee position in N stays the same — a point to discuss.
 - If a machine lacks SGX, document it and still run the ordinary experiments on two machines.
 
@@ -71,7 +71,7 @@ Two course machines with different microarchitectures (e.g. Skylake vs. Ice Lake
 | Machine | CPU model | Microarchitecture | SGX? | Notes |
 |---------|-----------|-------------------|------|-------|
 | Artemisia | Intel Xeon Gold 5420+ | Sapphire Rapids (Golden Cove cores; `lscpu` family 6, model 143, stepping 8) | **Yes (as of Oct 26 re-check)** — `sgx`, `sgx_lc` flags; `/dev/sgx_enclave`, `/dev/sgx_provision`, `/dev/sgx_vepc` present; two EPC sections in `dmesg` | See below |
-| Crux | Intel Core i7-9700 | Coffee Lake Refresh (`lscpu` family 6, model 158, stepping 13) | **In the CPU, off in firmware** — CPUID leaf 7 reports SGX and launch control, but leaf 0x12 is empty, with no `sgx` flag or `/dev/sgx*` | See below |
+| Crux | Intel Core i7-9700 | Coffee Lake Refresh (`lscpu` family 6, model 158, stepping 13) | **Yes (enabled Nov 2), SGX1 only** — `sgx`, `sgx_lc` flags; `/dev/sgx_enclave`; CPUID leaf 0x12 reports SGX2 = 0 and a 93 MiB EPC | See below |
 
 ### Artemisia details
 
@@ -90,10 +90,10 @@ Two course machines with different microarchitectures (e.g. Skylake vs. Ice Lake
 ### Crux details
 
 - Dell OptiPlex 5070, 1 socket × 8 cores, **no SMT**. 12 MiB L3. Max 4700 MHz; the clock measured ~4.68 GHz, dropping to ~4.48 GHz at times (consistent with turbo bins as other cores wake).
-- Ubuntu 24.04.5, kernel 6.8.0-88, GCC 13.3.0, Python 3.12.3. No AVX-512, so the Q5 `ymm_state` test does not apply.
-- **SGX:** the kernel is built with `CONFIG_X86_SGX`, so enabling needs firmware plus a reboot of this shared machine, then the SDK in `/opt/intel/sgxsdk` (not installed) and `sgx` group membership.
+- Ubuntu 24.04.5, GCC 13.3.0, Python 3.12.3. **Kernel 6.8.0-88 for native runs, 6.8.0-147 for SGX runs** (updated by the reboot after SGX was enabled; native not rerun). No AVX-512, so the Q5 `ymm_state` test does not apply.
+- **SGX:** SGX1 only, 93 MiB EPC, flexible launch control. Intel SGX SDK 2.30 in `~/sgx-2.30/sgxsdk`, with the real uRTS from the PSW packages unpacked to `~/sgx-2.30/psw` (no system install; the SDK's own `libsgx_urts.so` is only a stub). Enclave runs use `common/run_sgx1.sh`.
 - **PMU:** `perf_event_paranoid` defaults to 4, which blocks counting. It was set to 2 with sudo for the validation run only.
-- Full details are in `machines/crux.txt`.
+- Full details are in `machines/crux.txt` (native runs) and `machines/crux_sgx.txt` (SGX runs).
 
 ## Repository Layout
 
@@ -111,6 +111,7 @@ common/                  shared harness
   plotlib.py, knee.py    plot helpers
   pmu_verify.sh          perf-counter cross-check of the timing results (native only)
   pmu_tables.py          timing vs. PMU tables -> report/pmu_tables.md
+  run_sgx1.sh            SGX runs on a small-EPC SGX1 machine (smaller chains)
 q01_pipelined/           Q1   (each experiment: README.md, bench/, results/<machine>/, plots/)
 q02_ooo/                 Q2
 q03_branch/              Q3
@@ -128,7 +129,7 @@ flow, CSV format, how to interpret results, and the current baseline numbers.
 
 ## Reproduction
 
-Requirements: gcc, make, python3 with numpy + matplotlib. For enclave runs: the Intel SGX SDK in `/opt/intel/sgxsdk`, `openssl`, and a login session in the `sgx` group.
+Requirements: gcc, make, python3 with numpy + matplotlib. For enclave runs: the Intel SGX SDK in `/opt/intel/sgxsdk` (or set `SGX_SDK`), `openssl`, and a login session in the `sgx` group.
 
 ```bash
 cd qNN_<name>/bench
@@ -201,28 +202,31 @@ flip between ~2.0 and ~3.2 cycles per trial (a front-end effect: two taken branc
 iteration); this doesn't affect any conclusion. Occasional whole-trial slowdowns (~2×) come
 from other users' load on Artemisia; they show only in the min–max bands, not the medians.
 
-## Results Status (crux, native, CPU 2; updated Nov 1)
+## Results Status (crux, native vs SGX enclave, CPU 2; updated Nov 2)
 
-Coarse sweeps: 11 trials. Q4/Q5 step-1 zooms: 21 trials. SGX: not run (no access; off in firmware).
+Coarse sweeps: 11 trials. Q4/Q5 step-1 zooms: 21 trials.
 Conclusions come from timing; the PMU column is validation run afterwards (`report/pmu_tables.md`).
+Native and SGX runs differ in kernel (6.8.0-88 vs 6.8.0-147), chain size (128 vs 40 MiB per chain) and
+the timer thread's active core, so compare absolute times with care.
 
-| Q | Native (timing) | PMU check |
-|---|---|---|
-| 1 | Independent add IPC 3.99 vs dependent 1.00; imul 1.00 vs 0.333 → pipelined | ✓ IPC 1.001 / 4.03 / 0.334 / 1.004 |
-| 2 | 1 miss 360 cyc; 2 dependent 1.96×; 2 indep 1.01×; with consumer 1.02× → out-of-order | – |
-| 3 | Random 14.4 cyc/branch vs 3.6–5.2 learnable; degrades from period 256, random-level by 4096 | ✓ miss rate ≤ 0.00001 (taken, not-taken, alt, period:16) vs 0.4999 (random) |
-| 4 | Step-1: half-way crossing **N = 223** → **ROB ≈ 224** (published 224) | – |
-| 5 | Free int regs **≈ 143–145** (add/andn/shlx; lea forms 138–142); vector **≈ 148**; mix 208 → separate int / vector files | – |
-| 14 | 4 instr/cycle; legacy fetch 16 B/cycle | – |
-| 15 | **19.4 cyc per mispredict** (`alt` baseline), 20.6 (`period:16`) | ✓ assumptions hold; PMU estimates 18.5–21.6 |
+| Q | Native (timing) | SGX enclave (timing) | PMU check |
+|---|---|---|---|
+| 1 | Independent add IPC 3.99 vs dependent 1.00; imul 1.00 vs 0.333 → pipelined | 4.02 vs 0.99; imul 1.01 vs 0.334 | ✓ IPC 1.001 / 4.03 / 0.334 / 1.004 |
+| 2 | 1 miss 360 cyc; 2 dependent 1.96×; 2 indep 1.01×; with consumer 1.02× → out-of-order | 1 miss **615 cyc (+71%)**; 1.99× / 1.13× / 1.14× | – |
+| 3 | Random 14.4 cyc/branch vs 3.6–5.2 learnable; degrades from period 256, random-level by 4096 | identical within noise (random 14.25) | ✓ miss rate ≤ 0.00001 (taken, not-taken, alt, period:16) vs 0.4999 (random) |
+| 4 | Step-1: half-way crossing **N = 223** → **ROB ≈ 224** (published 224) | identical knee (N = 223), higher plateaus | – |
+| 5 | Free int regs **≈ 143–145** (add/andn/shlx; lea forms 138–142); vector **≈ 148**; mix 208 → separate int / vector files | int **≈ 140–142** (lea forms 137–139); vector **≈ 147**; mix 208 | – |
+| 14 | 4 instr/cycle; legacy fetch 16 B/cycle | same; largest footprints hold ~16 B/cycle vs ~13 natively | – |
+| 15 | **19.4 cyc per mispredict** (`alt` baseline), 20.6 (`period:16`) | **19.0**, 20.3 | ✓ assumptions hold; PMU estimates 18.5–21.6 |
 
 Open on crux: Q3's no-miss patterns cost 3.5–5.0 cycles with no mispredicts, likely front-end
-(cause not measured). Q5's mix knee (208) sits below the ROB knee (223), unexplained. The Q5
-knees sit below published PRF sizes.
+(cause not measured). Q5's mix knee (208) sits below the ROB knee (223) in both modes, unexplained. The Q5
+knees sit below published PRF sizes. The enclave's larger miss cost and weaker overlap, compared with
+Artemisia's, are not yet explained.
 
 ### Still to do
 - Optional: Q14 legacy-fetch ceiling (K ≈ 4608), a repeat Artemisia run at a quieter time.
-- **Report PDF** (`report/OUTLINE.md`), final `AI_LOG.md`, and the ZIP.
+- Final review of `report/report.tex`, final `AI_LOG.md`, and the ZIP.
 
 ## AI Use Disclosure
 

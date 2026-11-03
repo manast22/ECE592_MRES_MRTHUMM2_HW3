@@ -2,6 +2,8 @@
  * Each call forwards to the experiment's kt_* functions (common/kt.h). */
 enclave {
     trusted {
+        /* SGX1 only: where the host thread publishes the TSC (see bench.h). */
+        public void ecall_set_shared_tsc([user_check] void *p);
         public uint64_t ecall_count(void);
         public void ecall_entry(uint64_t i, [out, size=cap] char *name, size_t cap,
                                 [out] uint64_t *a, [out] uint64_t *b);

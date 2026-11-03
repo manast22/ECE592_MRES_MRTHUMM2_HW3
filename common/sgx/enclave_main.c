@@ -3,6 +3,13 @@
 #include "kb_t.h"
 #include "kt.h"
 
+const volatile uint64_t *bench_shared_tsc;
+
+void ecall_set_shared_tsc(void *p)
+{
+    bench_shared_tsc = p;
+}
+
 uint64_t ecall_count(void)
 {
     return kt_count();

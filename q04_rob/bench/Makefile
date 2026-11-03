@@ -8,7 +8,8 @@ GENERATED  := kernels.S
 ZOOM       ?= 470:530
 GEN_ARGS    = --kinds nop --n 0:800:8,$(call step1,$(ZOOM))
 # two 128 MiB chains + 8 MiB shuffle buffer, in the enclave heap
-ENCLAVE_HEAP := 0x12000000
+# (small-EPC machines override this: common/run_sgx1.sh)
+ENCLAVE_HEAP ?= 0x12000000
 
 include ../../common/common.mk
 

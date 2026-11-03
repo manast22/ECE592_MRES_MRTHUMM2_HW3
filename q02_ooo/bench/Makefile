@@ -5,7 +5,8 @@ GENERATED  := kernels.S
 # single/serial/use plus back-to-back pairs with 0..192 NOPs between the loads
 GEN_ARGS   := --extra --kinds nop --n 0:192:64
 # two 128 MiB chains + 8 MiB shuffle buffer, in the enclave heap
-ENCLAVE_HEAP := 0x12000000
+# (small-EPC machines override this: common/run_sgx1.sh)
+ENCLAVE_HEAP ?= 0x12000000
 
 include ../../common/common.mk
 

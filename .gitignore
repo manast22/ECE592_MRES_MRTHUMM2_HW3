@@ -19,4 +19,5 @@ common/sgx/timer_probe/enclave.signed.so
 common/sgx/timer_probe/probe_[tu].[ch]
 __pycache__/
 .gen_args
+.sgx_heap
 q05_prf/bench/xinuse

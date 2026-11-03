@@ -16,7 +16,8 @@ KINDS = int,ymm,mix,int_lea,int_ind,int_lea2$(if $(call has_flag,bmi1),$(comma)i
 ZOOM      ?= 196:280,404:460
 GEN_ARGS   = --kinds $(KINDS) --n 0:640:8,$(call step1,$(ZOOM))
 # two 128 MiB chains + 8 MiB shuffle buffer, in the enclave heap
-ENCLAVE_HEAP := 0x12000000
+# (small-EPC machines override this: common/run_sgx1.sh)
+ENCLAVE_HEAP ?= 0x12000000
 
 include ../../common/common.mk
 

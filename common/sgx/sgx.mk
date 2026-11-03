@@ -38,7 +38,10 @@ kb_u.c kb_u.h: $(SGX_DIR)/kb.edl
 $(SGX_BIN).unsigned.so: $(KT_SRC) $(SGX_DIR)/enclave_main.c kb_t.c $(COMMON)/calib.S kb_t.h $(COMMON)/kt.h
 	$(CC) $(ENCLAVE_CFLAGS) -o $@ $(filter %.c %.S,$^) $(ENCLAVE_LDFLAGS)
 
-$(SGX_BIN).config.xml: $(SGX_DIR)/enclave.config.xml.in Makefile
+.sgx_heap: FORCE
+	@echo '$(ENCLAVE_HEAP)' | cmp -s - $@ 2>/dev/null || echo '$(ENCLAVE_HEAP)' > $@
+
+$(SGX_BIN).config.xml: $(SGX_DIR)/enclave.config.xml.in .sgx_heap
 	sed 's/@HEAP@/$(ENCLAVE_HEAP)/' $< > $@
 
 $(SGX_BIN).enclave.so: $(SGX_BIN).unsigned.so $(SGX_BIN).config.xml | $(SGX_KEY)

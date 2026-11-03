@@ -30,12 +30,14 @@ The student must review everything listed below and be able to explain it.
 | 2026-11-01 | Repo cleanup | Removed PMU data from the Q15 timing plot; added `common/pmu_tables.py`; updated READMEs and outline; committed | Required timing-only results, with PMU as tables afterwards |
 | 2026-11-01 | Report | Drafted `report/report.tex` and this log from repo results; | _To do: review, correct and approve_ |
 
-| 2026-11-02 | Packaging | Committed the report and built and tested the submission ZIP | Decided not to pursue SGX on Crux |
+| 2026-11-02 | Packaging | Committed the report and built and tested the submission ZIP | Decided not to pursue SGX on Crux at that point |
+| 2026-11-02 | Crux SGX | Diagnosed the enclave failures; added the SGX1 shared-TSC timer and `common/run_sgx1.sh`; ran all SGX experiments; updated the report, READMEs and figures | Got SGX enabled; joined the `sgx` group; installed the SDK and unpacked the PSW libraries; chose not to rerun native on the new kernel |
 
 ## Not done by AI
 
 - The final choice of questions and plan (Claude Chat helped develop them).
 - Running sudo commands: `sgx` group membership and `perf_event_paranoid`.
+- Enabling SGX on Crux, and installing the SGX SDK and PSW libraries there.
 - Decisions on scope, on keeping one implementation across machines, and on the PMU policy.
 
 ## Student review (complete before submission)
@@ -43,7 +45,5 @@ The student must review everything listed below and be able to explain it.
 - [DONE] Read the report and can explain every method and result in it.
 - [DONE] Checked the open questions and hypotheses are stated as they should be.
 - [DONE] Confirmed this log is accurate, including who selected the questions.
-
-SGX on Crux was not pursued; the report states there was no access to it.
 
 _Add a row for every later AI-assisted step._

@@ -59,8 +59,10 @@ if [ ! -e /dev/sgx_enclave ]; then
 else
     [ -r /dev/sgx_enclave ] && [ -w /dev/sgx_enclave ] && ok "/dev/sgx_enclave accessible" \
         || warn "/dev/sgx_enclave exists but this session can't open it (needs the 'sgx' group, then a new login)"
-    [ -x /opt/intel/sgxsdk/bin/x64/sgx_sign ] && ok "Intel SGX SDK in /opt/intel/sgxsdk" \
-        || warn "Intel SGX SDK not found in /opt/intel/sgxsdk (set SGX_SDK=... for make)"
+    sdk=${SGX_SDK:-/opt/intel/sgxsdk}
+    [ -x "$sdk/bin/x64/sgx_sign" ] && ok "Intel SGX SDK in $sdk" \
+        || warn "Intel SGX SDK not found in $sdk (set SGX_SDK=... for make)"
+    echo "  NOTE  if the EPC can't hold two 128 MiB chains, use common/run_sgx1.sh for sgx mode"
     command -v openssl >/dev/null && ok "openssl (enclave signing key)" || warn "openssl missing: cannot create the signing key"
 fi
 
