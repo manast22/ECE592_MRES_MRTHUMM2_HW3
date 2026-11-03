@@ -11,7 +11,7 @@
 \usepackage{microtype}
 \usepackage{enumitem}
 \usepackage{etoolbox}
-\usepackage[hidelinks]{hyperref}
+\usepackage[colorlinks=true,urlcolor=blue!60!black,linkcolor=black,citecolor=black]{hyperref}
 
 \graphicspath{{media/}}
 \setlist{nosep,leftmargin=1.5em}
@@ -28,11 +28,11 @@
 \newcommand{\code}[1]{\texttt{#1}}
 
 \title{\vspace{-2em}Homework 3: Microarchitecture Reverse Engineering Across Machines}
-% Replace each placeholder with \url{https://...}
-\newcommand{\githublink}{\textit{[add link]}}
-\newcommand{\overleaflink}{\textit{[add link]}}
+\newcommand{\githublink}{\href{https://github.com/manast22/ECE592_MRES_MRTHUMM2_HW3}{github.com/manast22/ECE592\_MRES\_MRTHUMM2\_HW3}}
+% The share URL contains '#'; \href accepts it only as \#.
+\newcommand{\overleaflink}{\href{https://www.overleaf.com/project/6ae93292c25fcf79d154a2eb/share\#5e42b2380360d46bbe94e419135cdd2fd52b66c16fc37881}{overleaf.com/project/6ae93292c25fcf79d154a2eb}}
 
-\author{Manas Reddy Thumma (mrthumm2)\\ECE 492/592, Fall 2026, Track B\\[0.4em]
+\author{Manas Thumma (mrthumm2)\\ECE 592, Fall 2026, Track B\\[0.4em]
 \small GitHub: \githublink\\\small Overleaf: \overleaflink}
 \date{}
 
